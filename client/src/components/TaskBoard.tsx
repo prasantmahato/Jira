@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { Task } from './types';
 import TaskColumn from './TaskColumn';
 import AddTaskModal from './AddTaskModal';
+import TaskDetailPanel from './TaskDetailPanel';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 
 const TaskBoard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [taskBeingEdited, setTaskBeingEdited] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const closeDetails = () => setSelectedTask(null);
 
   const openAddModal = () => {
     setTaskBeingEdited(null);
@@ -36,6 +40,13 @@ const TaskBoard: React.FC = () => {
 
   const handleDelete = (id: number) => {
     setTasks((prev) => prev.filter((task) => task.id !== id));
+  };
+
+  const handleUpdate = (updatedTask: Task) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+    );
+    setSelectedTask(updatedTask); // Optional: keep the panel in sync
   };
 
   const getTasksByStatus = (status: Task['status']) =>
@@ -86,7 +97,7 @@ const handleDragEnd = (result: DropResult) => {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Your Task Board</h1>
+        <h1 className="text-2xl font-semibold">Team-Thor_Kanban Board</h1>
         <button
           onClick={openAddModal}
           className="bg-blue-600 text-white px-4 py-2 rounded shadow"
@@ -108,6 +119,7 @@ const handleDragEnd = (result: DropResult) => {
                 tasks={getTasksByStatus(status)}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onDoubleClick={(task) => setSelectedTask(task)}
               />
             </div>
           ))}
@@ -121,6 +133,11 @@ const handleDragEnd = (result: DropResult) => {
           initialTask={taskBeingEdited || undefined}
         />
       )}
+
+    {selectedTask && (
+        <TaskDetailPanel task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={handleUpdate} />
+      )}
+
     </div>
   );
 };
