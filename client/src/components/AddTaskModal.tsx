@@ -10,6 +10,7 @@ interface Props {
 const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) => {
   const isEdit = !!initialTask;
   const [title, setTitle] = useState(initialTask?.title || '');
+  const [desc, setDesc] = useState(initialTask?.desc || '');
   const [status, setStatus] = useState<Task['status']>(initialTask?.status || 'todo');
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -37,10 +38,12 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
     if (!title.trim()) return;
 
     const newTask: Task = {
-      id: initialTask?.id || Date.now(),
-      title,
-      status,
-    };
+        id: initialTask?.id || Date.now(),
+        title,
+        status,
+        desc,
+        createdAt: initialTask?.createdAt || new Date().toISOString(),
+      };      
     onAddOrUpdate(newTask);
     onClose();
   };
@@ -57,6 +60,14 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
           placeholder="Task title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+
+        <input
+          type="text"
+          placeholder="Description"
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
           className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 

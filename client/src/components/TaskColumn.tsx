@@ -1,30 +1,64 @@
 import React from 'react';
-import TaskCard from './TaskCard';
 import { Task } from './types';
+import TaskCard from './TaskCard';
+import { Droppable, Draggable } from '@hello-pangea/dnd';
 
 interface Props {
+  droppableId: Task['status'];
   title: string;
+  color: string;
   tasks: Task[];
-  color: 'yellow' | 'blue' | 'green';
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
 }
 
-const colorClasses: Record<string, string> = {
+const TaskColumn: React.FC<Props> = ({
+  droppableId,
+  title,
+  color,
+  tasks,
+  onEdit,
+  onDelete,
+}) => {
+  const colorClasses: Record<string, string> = {
     yellow: 'text-yellow-600',
     blue: 'text-blue-600',
     green: 'text-green-600',
-  };  
+  };
 
-const TaskColumn: React.FC<Props> = ({ title, tasks, color, onEdit, onDelete }) => {
   return (
-    <div className="bg-white rounded-lg shadow p-4 m-4 w-full border border-gray-200">
-      <h2 className={`text-lg font-bold ${colorClasses[color]} mb-4`}>{title}</h2>
-      <div className="space-y-4">
-        {tasks.map((task) => (
-          <TaskCard key={task.id} task={task} onEdit={onEdit} onDelete={onDelete} />
-        ))}
-      </div>
+    <div className="flex-1 bg-gray-50 rounded-xl p-4 border border-gray-200">
+      <h2 className={`text-lg font-bold mb-4 ${colorClasses[color]}`}>{title}</h2>
+
+      <Droppable droppableId={droppableId}>
+        {(provided, snapshot) => (
+          <div
+          className={`space-y-4 transition-all min-h-[100px] ${
+            snapshot.isDraggingOver ? 'bg-blue-50' : ''
+          }`}
+          ref={provided.innerRef}
+          {...provided.droppableProps}
+          >
+            {tasks.map((task, index) => (
+              <Draggable key={task.id.toString()} draggableId={task.id.toString()} index={index}>
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    className={`transition-transform duration-200 ${
+                      snapshot.isDragging ? 'scale-105 shadow-xl' : 'shadow-sm'
+                    }`}
+                  >
+                    <TaskCard task={task} onEdit={onEdit} onDelete={onDelete} />
+                  </div>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </div>
+        )}
+      </Droppable>
     </div>
   );
 };
