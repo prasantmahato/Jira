@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Task } from './types';
 import { FiEdit, FiTrash2, FiMoreHorizontal } from 'react-icons/fi';
+import dayjs from 'dayjs';
 
 interface Props {
   task: Task;
@@ -11,19 +12,24 @@ interface Props {
 const TaskCard: React.FC<Props> = ({ task, onEdit, onDelete }) => {
   const [showMenu, setShowMenu] = useState(false);
 
+  const statusColors: Record<Task['status'], string> = {
+    todo: 'bg-yellow-100 text-yellow-800',
+    inprogress: 'bg-blue-100 text-blue-800',
+    done: 'bg-green-100 text-green-800',
+  };
+
   return (
-    <div className="relative bg-white border border-red-500 rounded-2xl shadow-md hover:shadow-lg transition-shadow duration-200 p-4">
+    <div className="relative bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 px-4 py-3">
       {/* Title + Menu */}
       <div className="flex justify-between items-start">
         <div className="flex flex-col gap-1">
-          <p className="text-base font-semibold text-gray-800">{task.title}</p>
-          {/* Optional status tag */}
-          <span className="text-xs inline-block px-2 py-1 bg-red-100 text-red-600 rounded-full w-fit capitalize">
+          <p className="text-base font-medium text-gray-900">{task.title}</p>
+          <p className="text-base font-medium text-gray-900">{task.desc}</p>
+          <span className={`text-xs font-medium px-2 py-0.5 rounded w-fit ${statusColors[task.status]}`}>
             {task.status}
           </span>
         </div>
 
-        {/* Ellipsis Button */}
         <div className="relative">
           <button
             onClick={() => setShowMenu(!showMenu)}
@@ -34,7 +40,7 @@ const TaskCard: React.FC<Props> = ({ task, onEdit, onDelete }) => {
 
           {showMenu && (
             <div
-              className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded shadow z-10"
+              className="absolute right-0 mt-2 w-28 bg-white border border-gray-200 rounded-md shadow z-10"
               onMouseLeave={() => setShowMenu(false)}
             >
               <button
@@ -52,6 +58,11 @@ const TaskCard: React.FC<Props> = ({ task, onEdit, onDelete }) => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Created At */}
+      <div className="mt-3 text-xs text-gray-400">
+        Created: {dayjs(task.createdAt).format('MMM D, YYYY')}
       </div>
     </div>
   );
