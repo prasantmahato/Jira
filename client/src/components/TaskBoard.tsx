@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import { Task } from './types';
 import TaskColumn from './TaskColumn';
 import AddTaskModal from './AddTaskModal';
+import TaskDetailPanel from './TaskDetailPanel';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 
 const TaskBoard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [taskBeingEdited, setTaskBeingEdited] = useState<Task | null>(null);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
+  const closeDetails = () => setSelectedTask(null);
 
   const openAddModal = () => {
     setTaskBeingEdited(null);
@@ -15,13 +19,19 @@ const TaskBoard: React.FC = () => {
   };
 
   const handleAddOrUpdate = (newTask: Task) => {
-    setTasks((prev) =>
-      prev.some((t) => t.id === newTask.id)
-        ? prev.map((t) => (t.id === newTask.id ? newTask : t))
-        : [...prev, newTask]
-    );
+    setTasks((prev) => {
+      const isExisting = prev.some((t) => t.id === newTask.id);
+      if (isExisting) {
+        return prev.map((t) => (t.id === newTask.id ? newTask : t));
+      } else {
+        const sameStatusTasks = prev.filter((t) => t.status === newTask.status);
+        const maxOrder = sameStatusTasks.reduce((max, t) => Math.max(max, t.order || 0), 0);
+        return [...prev, { ...newTask, order: maxOrder + 1 }];
+      }
+    });
     setShowModal(false);
   };
+  
 
   const handleEdit = (task: Task) => {
     setTaskBeingEdited(task);
@@ -32,27 +42,62 @@ const TaskBoard: React.FC = () => {
     setTasks((prev) => prev.filter((task) => task.id !== id));
   };
 
-  const getTasksByStatus = (status: Task['status']) =>
-    tasks.filter((task) => task.status === status);
-
-  const handleDragEnd = (result: DropResult) => {
-    const { destination, source, draggableId } = result;
-
-    if (!destination || destination.droppableId === source.droppableId) return;
-
+  const handleUpdate = (updatedTask: Task) => {
     setTasks((prev) =>
-      prev.map((task) =>
-        task.id === Number(draggableId)
-          ? { ...task, status: destination.droppableId as Task['status'] }
-          : task
-      )
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
     );
+    setSelectedTask(updatedTask); // Optional: keep the panel in sync
   };
+
+  const getTasksByStatus = (status: Task['status']) =>
+    tasks
+      .filter((task) => task.status === status)
+      .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  
+
+const handleDragEnd = (result: DropResult) => {
+    const { source, destination, draggableId } = result;
+  
+    if (!destination) return;
+  
+    const sourceStatus = source.droppableId as Task['status'];
+    const destStatus = destination.droppableId as Task['status'];
+  
+    setTasks((prev) => {
+      const updated = [...prev];
+      const draggedTaskIndex = updated.findIndex((t) => t.id === Number(draggableId));
+      const draggedTask = { ...updated[draggedTaskIndex] };
+  
+      // Remove from original position
+      updated.splice(draggedTaskIndex, 1);
+  
+      // Get tasks of target column
+      const targetTasks = updated
+        .filter((t) => t.status === destStatus)
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  
+      // Insert into new position
+      targetTasks.splice(destination.index, 0, draggedTask);
+  
+      // Update task status + reassign order
+      const reordered = targetTasks.map((t, i) => ({
+        ...t,
+        status: destStatus,
+        order: i + 1,
+      }));
+  
+      // Remove all existing tasks of this status
+      const withoutTargetStatus = updated.filter((t) => t.status !== destStatus);
+  
+      return [...withoutTargetStatus, ...reordered];
+    });
+  };
+  
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Your Task Board</h1>
+        <h1 className="text-2xl font-semibold">Team-Thor_Kanban Board</h1>
         <button
           onClick={openAddModal}
           className="bg-blue-600 text-white px-4 py-2 rounded shadow"
@@ -74,6 +119,7 @@ const TaskBoard: React.FC = () => {
                 tasks={getTasksByStatus(status)}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onDoubleClick={(task) => setSelectedTask(task)}
               />
             </div>
           ))}
@@ -87,6 +133,11 @@ const TaskBoard: React.FC = () => {
           initialTask={taskBeingEdited || undefined}
         />
       )}
+
+    {selectedTask && (
+        <TaskDetailPanel task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={handleUpdate} />
+      )}
+
     </div>
   );
 };

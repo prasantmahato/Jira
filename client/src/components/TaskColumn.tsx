@@ -1,7 +1,8 @@
+// TaskColumn.tsx
 import React from 'react';
 import { Task } from './types';
 import TaskCard from './TaskCard';
-import { Droppable, Draggable } from '@hello-pangea/dnd';
+import { Droppable } from '@hello-pangea/dnd';
 
 interface Props {
   droppableId: Task['status'];
@@ -10,6 +11,7 @@ interface Props {
   tasks: Task[];
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
+  onDoubleClick?: (task: Task) => void;
 }
 
 const TaskColumn: React.FC<Props> = ({
@@ -19,6 +21,7 @@ const TaskColumn: React.FC<Props> = ({
   tasks,
   onEdit,
   onDelete,
+  onDoubleClick,
 }) => {
   const colorClasses: Record<string, string> = {
     yellow: 'text-yellow-600',
@@ -33,27 +36,21 @@ const TaskColumn: React.FC<Props> = ({
       <Droppable droppableId={droppableId}>
         {(provided, snapshot) => (
           <div
-          className={`space-y-4 transition-all min-h-[100px] ${
-            snapshot.isDraggingOver ? 'bg-blue-50' : ''
-          }`}
-          ref={provided.innerRef}
-          {...provided.droppableProps}
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`space-y-4 min-h-[100px] transition-all ${
+              snapshot.isDraggingOver ? 'bg-white/0' : ''
+            }`}
           >
             {tasks.map((task, index) => (
-              <Draggable key={task.id.toString()} draggableId={task.id.toString()} index={index}>
-                {(provided, snapshot) => (
-                  <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    {...provided.dragHandleProps}
-                    className={`transition-transform duration-200 ${
-                      snapshot.isDragging ? 'scale-105 shadow-xl' : 'shadow-sm'
-                    }`}
-                  >
-                    <TaskCard task={task} onEdit={onEdit} onDelete={onDelete} />
-                  </div>
-                )}
-              </Draggable>
+              <TaskCard
+                key={task.id}
+                task={task}
+                index={index}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onDoubleClick={onDoubleClick}
+              />
             ))}
             {provided.placeholder}
           </div>
