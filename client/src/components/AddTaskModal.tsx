@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Task } from './types';
+import { motion } from 'framer-motion';
 
 interface Props {
   onAddOrUpdate: (task: Task) => void;
@@ -9,93 +10,124 @@ interface Props {
 
 const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) => {
   const isEdit = !!initialTask;
+
   const [title, setTitle] = useState(initialTask?.title || '');
-  const [desc, setDesc] = useState(initialTask?.desc || '');
+  const [description, setDescription] = useState(initialTask?.description || '');
   const [status, setStatus] = useState<Task['status']>(initialTask?.status || 'todo');
+  const [assignee, setAssignee] = useState(initialTask?.assignee || '');
+  const [reporter, setReporter] = useState(initialTask?.reporter || '');
+  const [labels, setLabels] = useState(initialTask?.labels?.join(', ') || '');
+
   const modalRef = useRef<HTMLDivElement>(null);
 
-  // Close modal on Escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+  const handleClickOutside = (e: MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
 
-  // Click outside to close
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
+  }, []);
 
   const handleSubmit = () => {
-    if (!title.trim()) return;
-
+    const now = new Date().toISOString();
     const newTask: Task = {
-        id: initialTask?.id || Date.now(),
-        title,
-        status,
-        desc,
-        createdAt: initialTask?.createdAt || new Date().toISOString(),
-      };      
+      id: initialTask?.id || Date.now(),
+      title,
+      status,
+      description,
+      assignee,
+      reporter,
+      labels: labels.split(',').map((l) => l.trim()).filter(Boolean),
+      createdAt: initialTask?.createdAt || now,
+      updatedAt: now,
+    };
     onAddOrUpdate(newTask);
-    onClose();
   };
 
   return (
     <div className="fixed inset-0 backdrop-blur-sm bg-white/30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md mx-4 animate-fadeIn">
-        <h2 className="text-xl font-bold mb-4">
+      <motion.div
+        ref={modalRef}
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ duration: 0.2 }}
+        className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md"
+      >
+        <h2 className="text-lg font-semibold mb-4">
           {isEdit ? 'Edit Task' : 'Add New Task'}
         </h2>
 
-        <input
-          type="text"
-          placeholder="Task title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        <div className="space-y-3">
+          <input
+            type="text"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+          />
 
-        <input
-          type="text"
-          placeholder="Description"
-          value={desc}
-          onChange={(e) => setDesc(e.target.value)}
-          className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+          <textarea
+            placeholder="Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+          />
 
-        <select
-          value={status}
-          onChange={(e) => setStatus(e.target.value as Task['status'])}
-          className="w-full border border-gray-300 rounded px-3 py-2 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="todo">To Do</option>
-          <option value="inprogress">In Progress</option>
-          <option value="done">Done</option>
-        </select>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value as Task['status'])}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+          >
+            <option value="todo">To Do</option>
+            <option value="inprogress">In Progress</option>
+            <option value="done">Done</option>
+          </select>
 
-        <div className="flex justify-end gap-3">
+          <input
+            type="text"
+            placeholder="Assignee"
+            value={assignee}
+            onChange={(e) => setAssignee(e.target.value)}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+          />
+
+          <input
+            type="text"
+            placeholder="Reporter"
+            value={reporter}
+            onChange={(e) => setReporter(e.target.value)}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+          />
+
+          <input
+            type="text"
+            placeholder="Labels (comma separated)"
+            value={labels}
+            onChange={(e) => setLabels(e.target.value)}
+            className="w-full border border-gray-300 rounded px-3 py-2 text-sm"
+          />
+        </div>
+
+        <div className="mt-6 flex justify-end gap-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-gray-600 hover:text-gray-800"
+            className="text-gray-600 hover:text-black px-4 py-2 text-sm"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            className="bg-blue-600 text-white px-4 py-2 text-sm rounded"
           >
             {isEdit ? 'Update' : 'Add'}
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };

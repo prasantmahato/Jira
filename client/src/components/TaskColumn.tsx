@@ -33,11 +33,11 @@ const TaskColumn: React.FC<Props> = ({
       <Droppable droppableId={droppableId}>
         {(provided, snapshot) => (
           <div
-          className={`space-y-4 transition-all min-h-[100px] ${
-            snapshot.isDraggingOver ? 'bg-blue-50' : ''
-          }`}
-          ref={provided.innerRef}
-          {...provided.droppableProps}
+            ref={provided.innerRef}
+            {...provided.droppableProps}
+            className={`space-y-4 min-h-[100px] transition-all ${
+              snapshot.isDraggingOver ? 'bg-white/0' : ''
+            }`}
           >
             {tasks.map((task, index) => (
               <Draggable key={task.id.toString()} draggableId={task.id.toString()} index={index}>
