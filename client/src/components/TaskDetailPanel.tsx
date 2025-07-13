@@ -90,7 +90,7 @@ const handleAddComment = () => {
   };
 
   const handleKeyDown = (event: React.KeyboardEvent, action: () => void) => {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === 'Enter') {
       action();
       event.preventDefault();
     }
