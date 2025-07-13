@@ -12,7 +12,7 @@ const TaskBoard: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [taskBeingEdited, setTaskBeingEdited] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [filter, setFilter] = useState<'all' | 'todo' | 'inprogress' | 'inreview' | 'done'>('all');
+  const [filter, setFilter] = useState<'all' | 'todo' | 'inprogress' | 'review' | 'done'>('all');
   const [selectedAssignee, setSelectedAssignee] = useState<string>('all');
 
 
@@ -133,7 +133,7 @@ const handleDragEnd = (result: DropResult) => {
 
   <DragDropContext onDragEnd={handleDragEnd}>
     <div className="flex gap-6 px-6 w-full">
-      {(['todo', 'inprogress', 'inreview', 'done'] as Task['status'][]).map((status) => {
+      {(['todo', 'inprogress', 'review', 'done'] as Task['status'][]).map((status) => {
         const columnTasks = getTasksByStatus(status).filter((task) =>
           filter === 'all' ? true : task.status === filter
         );
@@ -147,7 +147,7 @@ const handleDragEnd = (result: DropResult) => {
                   ? 'To Do'
                   : status === 'inprogress'
                   ? 'In Progress'
-                  : status === 'inreview'
+                  : status === 'review'
                   ? 'In Review'
                   : 'Done'
               }
@@ -156,7 +156,7 @@ const handleDragEnd = (result: DropResult) => {
                   ? 'yellow'
                   : status === 'inprogress'
                   ? 'blue'
-                  : status === 'inreview'
+                  : status === 'review'
                   ? 'purple'
                   : 'green'
               }

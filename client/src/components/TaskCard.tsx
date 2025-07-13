@@ -18,9 +18,9 @@ const TaskCard: React.FC<Props> = ({ task, index, onEdit, onDelete, onDoubleClic
 
   const statusColors: Record<Task['status'], string> = {
     todo: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  inprogress: 'bg-blue-100 text-blue-800 border-blue-300',
-  inreview: 'bg-blue-200 text-blue-800 border-blue-400',
-  done: 'bg-green-100 text-green-800 border-green-300',
+    inprogress: 'bg-blue-100 text-blue-800 border-blue-300',
+    review: 'bg-blue-200 text-blue-800 border-blue-400',
+    done: 'bg-green-100 text-green-800 border-green-300',
   };
 
   return (
@@ -101,7 +101,7 @@ const TaskCard: React.FC<Props> = ({ task, index, onEdit, onDelete, onDoubleClic
 
           {/* Dates */}
           <div className="mt-2 text-xs text-gray-400">
-            📅 Updated: {dayjs(task.updatedAt || task.createdAt).format('MMM D, YYYY')}
+            📅 Last Updated: {dayjs(task.updatedAt || task.createdAt).format('MMM D, YYYY')}
           </div>
         </div>
       )}

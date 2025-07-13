@@ -84,7 +84,7 @@ export const dummyTasks: Task[] = [
     id: 6,
     title: 'Create Task Types & Interfaces',
     description: 'Define and export all TypeScript types for tasks and task lists.',
-    status: 'inreview',
+    status: 'review',
     assignee: 'Prasant Mahato',
     reporter: 'Prasant M.',
     labels: ['typescript', 'typing', 'structure'],
