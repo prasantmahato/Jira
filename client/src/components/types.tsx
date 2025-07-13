@@ -1,7 +1,7 @@
 export interface Task {
     id: number;
     title: string;
-    status: 'todo' | 'inprogress' | 'done';
+    status: 'todo' | 'inprogress' | 'inreview' | 'done';
     createdAt: string;
     updatedAt: string;
     description?: string;
@@ -9,5 +9,6 @@ export interface Task {
     reporter?: string;
     labels?: string[];
     order?: number;
+    comments?: { text: string; time: string }[];
   }
   

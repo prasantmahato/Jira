@@ -40,24 +40,40 @@ const Signup = () => {
             />
           </div>
 
-          <div className="my-5 text-sm">
-            <label htmlFor="password1" className="block text-black">Password</label>
-            <input
-              type="password"
-              id="password1"
-              className="rounded-sm px-4 py-3 mt-3 focus:outline-none bg-gray-100 w-full"
-              placeholder="Password"
-            />
+          <div className="flex gap-4 my-5 text-sm">
+            <div className="w-1/2">
+              <label htmlFor="password1" className="block text-black">Password</label>
+              <input
+                type="password"
+                id="password1"
+                className="rounded-sm px-4 py-3 mt-3 focus:outline-none bg-gray-100 w-full"
+                placeholder="Password"
+              />
+            </div>
+          
+            <div className="w-1/2">
+              <label htmlFor="password2" className="block text-black">Confirm Password</label>
+              <input
+                type="password"
+                id="password2"
+                className="rounded-sm px-4 py-3 mt-3 focus:outline-none bg-gray-100 w-full"
+                placeholder="Confirm Password"
+              />
+            </div>
           </div>
 
           <div className="my-5 text-sm">
-            <label htmlFor="password2" className="block text-black">Confirm Password</label>
-            <input
-              type="password"
-              id="password2"
+            <label htmlFor="role" className="block text-black">Role</label>
+            <select
+              id="role"
               className="rounded-sm px-4 py-3 mt-3 focus:outline-none bg-gray-100 w-full"
-              placeholder="Confirm Password"
-            />
+              defaultValue=""
+            >
+              <option value="" disabled>Select your role</option>
+              <option value="dev">Developer / QA</option>
+              <option value="sm">Scrum Master</option>
+              <option value="pm">Project Manager</option>
+            </select>
           </div>
 
           <button
