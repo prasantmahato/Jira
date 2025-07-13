@@ -1,4 +1,3 @@
-// TaskColumn.tsx
 import React from 'react';
 import { Task } from './types';
 import TaskCard from './TaskCard';
@@ -24,35 +23,48 @@ const TaskColumn: React.FC<Props> = ({
   onDoubleClick,
 }) => {
   const colorClasses: Record<string, string> = {
-    yellow: 'text-yellow-600',
-    blue: 'text-blue-600',
-    purple: 'text-purple-600',
-    green: 'text-green-600',
+    yellow: 'bg-yellow-500',
+    blue: 'bg-indigo-600',
+    purple: 'bg-purple-600',
+    green: 'bg-green-500',
   };
 
   return (
-    <div className="flex-1 bg-gray-50 rounded-xl p-4 border border-gray-200">
-      <h2 className={`text-lg font-bold mb-4 ${colorClasses[color]}`}>{title}</h2>
+    <div
+      className="flex-1 min-w-[250px] bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
+      role="region"
+      aria-label={`${title} column`}
+    >
+      <div className="flex items-center gap-3 mb-4">
+        <div className={`w-3 h-3 rounded-full ${colorClasses[color]}`} aria-hidden="true" />
+        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+      </div>
 
       <Droppable droppableId={droppableId}>
         {(provided, snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={`space-y-4 min-h-[100px] transition-all ${
-              snapshot.isDraggingOver ? 'bg-white/0' : ''
-            }`}
+            className={`space-y-3 min-h-[100px] transition-all duration-200 ${
+              snapshot.isDraggingOver ? 'bg-indigo-50 border-indigo-300' : 'bg-white'
+            } rounded-md p-2`}
+            tabIndex={0}
+            aria-describedby={`column-title-${droppableId}`}
           >
-            {tasks.map((task, index) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                index={index}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onDoubleClick={onDoubleClick}
-              />
-            ))}
+            {tasks.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center">No tasks in this column.</p>
+            ) : (
+              tasks.map((task, index) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  index={index}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onDoubleClick={onDoubleClick}
+                />
+              ))
+            )}
             {provided.placeholder}
           </div>
         )}

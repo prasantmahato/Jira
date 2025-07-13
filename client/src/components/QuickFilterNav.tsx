@@ -3,8 +3,8 @@ import { Task } from './types';
 import { Filter, UserRoundSearch } from 'lucide-react';
 
 interface Props {
-  filter: 'all' | 'todo' | 'inprogress' | 'inreview' | 'done';
-  setFilter: (value: 'all' | 'todo' | 'inprogress' | 'inreview' | 'done') => void;
+  filter: 'all' | 'todo' | 'inprogress' | 'review' | 'done';
+  setFilter: (value: 'all' | 'todo' | 'inprogress' | 'review' | 'done') => void;
   selectedAssignee: string;
   setSelectedAssignee: (value: string) => void;
   tasks: Task[];
@@ -21,7 +21,7 @@ const QuickFilterNav: React.FC<Props> = ({
     { key: 'all', label: 'All' },
     { key: 'todo', label: 'To Do' },
     { key: 'inprogress', label: 'In Progress' },
-    { key: 'inreview', label: 'In Review' },
+    { key: 'review', label: 'In Review' },
     { key: 'done', label: 'Done' },
   ];
 
