@@ -103,7 +103,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className="bg-white border-t border-gray-200">
           <div className="container px-5 py-6 mx-auto flex items-center justify-between flex-col sm:flex-row">
-            <p className="text-sm text-gray-500 font-light">© 2025 All rights reserved | Powered by Atlasian</p>
+            <p className="text-sm text-gray-500 font-light">© 2025 All rights reserved | Powered by Atlassian</p>
             <a
               href="https://support.example.com/feedback"
               className="text-xs text-gray-600 hover:text-indigo-600 transition-colors duration-300"
