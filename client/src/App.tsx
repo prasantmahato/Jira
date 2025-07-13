@@ -4,14 +4,15 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Navbar from './components/Navbar';
+import Layout from './components/Layout';
 
-const App = () => {
+const App: React.FC = () => {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Layout><Dashboard /></Layout>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
         </Routes>

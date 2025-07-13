@@ -253,7 +253,6 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, handleAddComment)}
             placeholder="Add a comment"
             maxLength={500}
             className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
