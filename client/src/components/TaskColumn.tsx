@@ -11,6 +11,8 @@ interface Props {
   onEdit: (task: Task) => void;
   onDelete: (id: number) => void;
   onDoubleClick?: (task: Task) => void;
+  onFilterByStatus: (status: Task['status'], currentFilter: Task['status'] | 'all') => void;
+  currentFilter: Task['status'] | 'all';
 }
 
 const TaskColumn: React.FC<Props> = ({
@@ -21,12 +23,23 @@ const TaskColumn: React.FC<Props> = ({
   onEdit,
   onDelete,
   onDoubleClick,
+  onFilterByStatus,
+  currentFilter,
 }) => {
   const colorClasses: Record<string, string> = {
     yellow: 'bg-yellow-500',
     blue: 'bg-indigo-600',
     purple: 'bg-purple-600',
     green: 'bg-green-500',
+  };
+
+  const isFiltered = currentFilter === droppableId;
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onFilterByStatus(droppableId, currentFilter);
+    }
   };
 
   return (
@@ -37,7 +50,18 @@ const TaskColumn: React.FC<Props> = ({
     >
       <div className="flex items-center gap-3 mb-4">
         <div className={`w-3 h-3 rounded-full ${colorClasses[color]}`} aria-hidden="true" />
-        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+        <button
+          onClick={() => onFilterByStatus(droppableId, currentFilter)}
+          onKeyDown={handleKeyDown}
+          className={`text-xl font-bold transition-colors duration-200 rounded focus:outline-none ${
+            isFiltered ? 'text-indigo-600 hover:text-indigo-700 text-decoration-line: underline': 'text-gray-900 hover:text-indigo-600'
+          }`}
+          role="button"
+          tabIndex={0}
+          aria-label={isFiltered ? `Remove status filter` : `Filter by ${title} status`}
+        >
+          {title}
+        </button>
       </div>
 
       <Droppable droppableId={droppableId}>

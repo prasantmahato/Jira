@@ -5,7 +5,7 @@ import AddTaskModal from './AddTaskModal';
 import TaskDetailPanel from './TaskDetailPanel';
 import QuickFilterNav from './QuickFilterNav';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
-import { dummyTasks } from './dummyTasks'; 
+import { dummyTasks } from './dummyTasks';
 
 const TaskBoard: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>(dummyTasks);
@@ -14,7 +14,6 @@ const TaskBoard: React.FC = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [filter, setFilter] = useState<'all' | 'todo' | 'inprogress' | 'review' | 'done'>('all');
   const [selectedAssignee, setSelectedAssignee] = useState<string>('all');
-
 
   const closeDetails = () => setSelectedTask(null);
 
@@ -42,7 +41,6 @@ const TaskBoard: React.FC = () => {
     });
     setShowModal(false);
   };
-  
 
   const handleEdit = (task: Task) => {
     setTaskBeingEdited(task);
@@ -57,119 +55,117 @@ const TaskBoard: React.FC = () => {
     setTasks((prev) =>
       prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
     );
-    setSelectedTask(updatedTask); // Optional: keep the panel in sync
+    setSelectedTask(updatedTask);
   };
 
-//   const getTasksByStatus = (status: Task['status']) =>
-//     tasks
-//       .filter((task) => task.status === status)
-//       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+  const handleFilterByStatus = (status: Task['status'], currentFilter: Task['status'] | 'all') => {
+    console.log(`Filtering by status: ${status}, current filter: ${currentFilter}`);
+    setFilter(currentFilter === status ? 'all' : status);
+  };
 
-const getTasksByStatus = (status: Task['status']) =>
-    filteredTasks
+  const getTasksByStatus = (status: Task['status']) => {
+    return filteredTasks
       .filter((task) => task.status === status)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  
+  };
 
-const handleDragEnd = (result: DropResult) => {
+  const handleDragEnd = (result: DropResult) => {
     const { source, destination, draggableId } = result;
-  
+
     if (!destination) return;
-  
+
     const sourceStatus = source.droppableId as Task['status'];
     const destStatus = destination.droppableId as Task['status'];
-  
+
     setTasks((prev) => {
       const updated = [...prev];
       const draggedTaskIndex = updated.findIndex((t) => t.id === Number(draggableId));
       const draggedTask = { ...updated[draggedTaskIndex] };
-  
+
       // Remove from original position
       updated.splice(draggedTaskIndex, 1);
-  
+
       // Get tasks of target column
       const targetTasks = updated
         .filter((t) => t.status === destStatus)
         .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
-  
+
       // Insert into new position
-      targetTasks.splice(destination.index, 0, draggedTask);
-  
+      targetTasks.splice(destination.index, 0, { ...draggedTask, status: destStatus });
+
       // Update task status + reassign order
       const reordered = targetTasks.map((t, i) => ({
         ...t,
         status: destStatus,
         order: i + 1,
       }));
-  
+
       // Remove all existing tasks of this status
       const withoutTargetStatus = updated.filter((t) => t.status !== destStatus);
-  
+
       return [...withoutTargetStatus, ...reordered];
     });
   };
-  
 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-semibold">Team-Thor_Kanban Board</h1>
+        <h1 className="text-2xl font-semibold text-gray-900">Team-Thor Kanban Board</h1>
         <button
           onClick={openAddModal}
-          className="bg-blue-600 text-white px-4 py-2 rounded shadow"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2 transition-all duration-200"
         >
           + Create Task
         </button>
       </div>
 
-<QuickFilterNav
-  filter={filter}
-  setFilter={setFilter}
-  selectedAssignee={selectedAssignee}
-  setSelectedAssignee={setSelectedAssignee}
-  tasks={tasks}
-/>
+      <QuickFilterNav
+        filter={filter}
+        setFilter={setFilter}
+        selectedAssignee={selectedAssignee}
+        setSelectedAssignee={setSelectedAssignee}
+        tasks={tasks}
+      />
 
+      <DragDropContext onDragEnd={handleDragEnd}>
+        <div className="flex gap-6 px-6 w-full">
+          {(['todo', 'inprogress', 'review', 'done'] as Task['status'][]).map((status) => {
+            const columnTasks = getTasksByStatus(status);
 
-  <DragDropContext onDragEnd={handleDragEnd}>
-    <div className="flex gap-6 px-6 w-full">
-      {(['todo', 'inprogress', 'review', 'done'] as Task['status'][]).map((status) => {
-        const columnTasks = getTasksByStatus(status).filter((task) =>
-          filter === 'all' ? true : task.status === filter
-        );
-
-        return (
-          <div key={status} className="flex-1">
-            <TaskColumn
-              droppableId={status}
-              title={
-                status === 'todo'
-                  ? 'To Do'
-                  : status === 'inprogress'
-                  ? 'In Progress'
-                  : status === 'review'
-                  ? 'In Review'
-                  : 'Done'
-              }
-              color={
-                status === 'todo'
-                  ? 'yellow'
-                  : status === 'inprogress'
-                  ? 'blue'
-                  : status === 'review'
-                  ? 'purple'
-                  : 'green'
-              }
-              tasks={columnTasks}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onDoubleClick={(task) => setSelectedTask(task)}
-            />
-          </div>
-        );
-      })}
-    </div>
-  </DragDropContext>
+            return (
+              <div key={status} className="flex-1">
+                <TaskColumn
+                  droppableId={status}
+                  title={
+                    status === 'todo'
+                      ? 'To Do'
+                      : status === 'inprogress'
+                      ? 'In Progress'
+                      : status === 'review'
+                      ? 'In Review'
+                      : 'Done'
+                  }
+                  color={
+                    status === 'todo'
+                      ? 'yellow'
+                      : status === 'inprogress'
+                      ? 'blue'
+                      : status === 'review'
+                      ? 'purple'
+                      : 'green'
+                  }
+                  tasks={columnTasks}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onDoubleClick={(task) => setSelectedTask(task)}
+                  onFilterByStatus={handleFilterByStatus}
+                  currentFilter={filter}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </DragDropContext>
 
       {showModal && (
         <AddTaskModal
@@ -179,10 +175,13 @@ const handleDragEnd = (result: DropResult) => {
         />
       )}
 
-    {selectedTask && (
-        <TaskDetailPanel task={selectedTask} onClose={() => setSelectedTask(null)} onUpdate={handleUpdate} />
+      {selectedTask && (
+        <TaskDetailPanel
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onUpdate={handleUpdate}
+        />
       )}
-
     </div>
   );
 };
