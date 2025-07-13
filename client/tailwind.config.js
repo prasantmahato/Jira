@@ -3,6 +3,11 @@ export default {
     content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}', './src/*.{js,ts,jsx,tsx}'],
     theme: {
       extend: {
+        ringColor: {
+            indigo: {
+              300: '#a5b4fc',
+            },
+          },
         animation: {
             'fade-in': 'fadeIn 0.3s ease-in',
           },
