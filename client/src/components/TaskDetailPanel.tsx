@@ -23,7 +23,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
   );
   const panelRef = useRef<HTMLDivElement>(null);
 
-  // Click-outside handler to close panel
+  // Click-outside handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
@@ -34,7 +34,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [onClose]);
 
-  const handleFieldChange = (field: keyof Task, value: string) => {
+  const handleFieldChange = (field: keyof Task, value: string | number) => {
     setEditedTask((prev) => ({ ...prev, [field]: value }));
     setIsEditing(true);
   };
@@ -61,21 +61,22 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
       labels: typeof editedTask.labels === 'string'
         ? editedTask.labels.split(',').map((l) => l.trim()).filter(Boolean)
         : editedTask.labels || [],
+      sprintNo: editedTask.sprintNo !== undefined ? String(editedTask.sprintNo) : undefined,
+      taskType: editedTask.taskType || undefined,
     };
     onUpdate(updated);
     setIsEditing(false);
   };
 
-const handleAddComment = () => {
+  const handleAddComment = () => {
     if (newComment.trim().length > 0) {
       const newEntry = {
-        text: newComment, // Preserve spaces
+        text: newComment,
         time: new Date().toISOString(),
       };
       const updatedComments = [...comments, newEntry];
       setComments(updatedComments);
       setNewComment('');
-      // Save the entire task immediately
       const updated: Task = {
         ...editedTask,
         updatedAt: new Date().toISOString(),
@@ -83,32 +84,44 @@ const handleAddComment = () => {
         labels: typeof editedTask.labels === 'string'
           ? editedTask.labels.split(',').map((l) => l.trim()).filter(Boolean)
           : editedTask.labels || [],
+        sprintNo: editedTask.sprintNo !== undefined ? String(editedTask.sprintNo) : undefined,
+        taskType: editedTask.taskType || undefined,
       };
       onUpdate(updated);
-      setIsEditing(false); // Reset editing state to hide Save/Cancel buttons
+      setIsEditing(false);
     }
   };
 
   const handleKeyDown = (event: React.KeyboardEvent, action: () => void) => {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' || event.key === ' ') {
       action();
       event.preventDefault();
     }
   };
 
-  const renderEditableField = (field: keyof Task, label: string, multiline = false) => {
+  const renderEditableField = (
+    field: keyof Task,
+    label: string,
+    type: 'text' | 'textarea' | 'select' | 'number' = 'text',
+    options?: string[]
+  ) => {
     const value = field === 'labels'
       ? Array.isArray(editedTask.labels)
         ? editedTask.labels.join(', ')
-        : (editedTask.labels as string) || ''
+        : (editedTask[field] as string) || ''
+      : field === 'sprintNo'
+      ? editedTask[field] ?? ''
       : (editedTask[field] as string) || '';
 
     return (
       <div className="group relative mb-6">
-        <label className="text-sm font-medium text-gray-700">{label}</label>
+        <label className="text-sm font-medium text-gray-700" htmlFor={field}>
+          {label}
+        </label>
         <div className="mt-1">
-          {multiline ? (
+          {type === 'textarea' ? (
             <textarea
+              id={field}
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
               value={value}
               onChange={(e) => handleFieldChange(field, e.target.value)}
@@ -116,8 +129,34 @@ const handleAddComment = () => {
               placeholder={`Enter ${label.toLowerCase()}`}
               aria-label={label}
             />
+          ) : type === 'select' && options ? (
+            <select
+              id={field}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200 appearance-none"
+              value={value}
+              onChange={(e) => handleFieldChange(field, e.target.value)}
+              aria-label={label}
+            >
+              <option value="">Select {label.toLowerCase()}</option>
+              {options.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          ) : type === 'number' ? (
+            <input
+              id={field}
+              type="number"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
+              value={value}
+              onChange={(e) => handleFieldChange(field, e.target.value)}
+              placeholder={`Enter ${label.toLowerCase()}`}
+              aria-label={label}
+            />
           ) : (
             <input
+              id={field}
               type="text"
               className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
               value={value}
@@ -153,12 +192,15 @@ const handleAddComment = () => {
       </div>
 
       {renderEditableField('title', 'Title')}
-      {renderEditableField('description', 'Description', true)}
+      {renderEditableField('description', 'Description', 'textarea')}
       {renderEditableField('assignee', 'Assignee')}
       {renderEditableField('reporter', 'Reporter')}
       {renderEditableField('labels', 'Labels (comma separated)')}
+      {renderEditableField('sprintNo', 'Sprint Number')}
+      {renderEditableField('projectNo', 'Project Number')}
+      {renderEditableField('acceptanceCriteria', 'Acceptance Criteria', 'textarea')}
+      {renderEditableField('taskType', 'Task Type', 'select', ['Bug', 'Spike', 'Ticket'])}
 
-      {/* Save/Cancel Buttons */}
       {isEditing && (
         <div className="mt-6 flex justify-end gap-3">
           <button
@@ -180,7 +222,6 @@ const handleAddComment = () => {
         </div>
       )}
 
-      {/* Comment Section */}
       <div className="mt-8">
         <label className="text-sm font-medium text-gray-700">Comments</label>
         <div className="mt-3 space-y-3">
@@ -212,6 +253,7 @@ const handleAddComment = () => {
             type="text"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            onKeyDown={(e) => handleKeyDown(e, handleAddComment)}
             placeholder="Add a comment"
             maxLength={500}
             className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
