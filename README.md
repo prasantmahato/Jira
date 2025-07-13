@@ -3,10 +3,10 @@
 <img width="1792" height="1137" alt="Screenshot 2025-07-13 at 3 03 11 PM" src="https://github.com/user-attachments/assets/ec541991-ad78-4f48-94fc-f8cd2b72b0d0" />
 <img width="1792" height="1137" alt="Screenshot 2025-07-13 at 3 03 45 PM" src="https://github.com/user-attachments/assets/3661e490-d2ae-484f-bbc1-3441093e068f" />
 <img width="1792" height="1137" alt="Screenshot 2025-07-13 at 3 03 20 PM" src="https://github.com/user-attachments/assets/a4958d01-14be-44be-84a9-34e843291d7d" />
-<img width="1792" height="1137" alt="Screenshot 2025-07-13 at 3 06 28 PM" src="https://github.com/user-attachments/assets/435d90a4-7535-4431-bc94-624450fdd999" />
-<img width="1792" height="1137" alt="Screenshot 2025-07-13 at 3 06 22 PM" src="https://github.com/user-attachments/assets/7df7b5d9-b17c-413e-bc4f-f3c9dddf69ee" />
 <img width="1792" height="1137" alt="Screenshot 2025-07-13 at 3 06 08 PM" src="https://github.com/user-attachments/assets/78a79ac9-8056-4998-84e5-e4e63693dfba" />
 <img width="1792" height="1137" alt="Screenshot 2025-07-13 at 3 04 12 PM" src="https://github.com/user-attachments/assets/400bd696-41ef-482e-bdc7-12f2db0b6bfc" />
+<img width="1792" height="1137" alt="Screenshot 2025-07-13 at 3 06 28 PM" src="https://github.com/user-attachments/assets/435d90a4-7535-4431-bc94-624450fdd999" />
+<img width="1792" height="1137" alt="Screenshot 2025-07-13 at 3 06 22 PM" src="https://github.com/user-attachments/assets/7df7b5d9-b17c-413e-bc4f-f3c9dddf69ee" />
 
 
 # Jira
