@@ -17,9 +17,10 @@ const TaskCard: React.FC<Props> = ({ task, index, onEdit, onDelete, onDoubleClic
   const [showMenu, setShowMenu] = useState(false);
 
   const statusColors: Record<Task['status'], string> = {
-    todo: 'bg-yellow-100 text-yellow-800',
-    inprogress: 'bg-blue-100 text-blue-800',
-    done: 'bg-green-100 text-green-800',
+    todo: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+  inprogress: 'bg-blue-100 text-blue-800 border-blue-300',
+  inreview: 'bg-blue-200 text-blue-800 border-blue-400',
+  done: 'bg-green-100 text-green-800 border-green-300',
   };
 
   return (

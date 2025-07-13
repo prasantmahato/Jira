@@ -3,15 +3,26 @@ import { Task } from './types';
 import TaskColumn from './TaskColumn';
 import AddTaskModal from './AddTaskModal';
 import TaskDetailPanel from './TaskDetailPanel';
+import QuickFilterNav from './QuickFilterNav';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
+import { dummyTasks } from './dummyTasks'; 
 
 const TaskBoard: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(dummyTasks);
   const [showModal, setShowModal] = useState(false);
   const [taskBeingEdited, setTaskBeingEdited] = useState<Task | null>(null);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [filter, setFilter] = useState<'all' | 'todo' | 'inprogress' | 'inreview' | 'done'>('all');
+  const [selectedAssignee, setSelectedAssignee] = useState<string>('all');
+
 
   const closeDetails = () => setSelectedTask(null);
+
+  const filteredTasks = tasks.filter(
+    (task) =>
+      (filter === 'all' || task.status === filter) &&
+      (selectedAssignee === 'all' || task.assignee === selectedAssignee)
+  );
 
   const openAddModal = () => {
     setTaskBeingEdited(null);
@@ -49,8 +60,13 @@ const TaskBoard: React.FC = () => {
     setSelectedTask(updatedTask); // Optional: keep the panel in sync
   };
 
-  const getTasksByStatus = (status: Task['status']) =>
-    tasks
+//   const getTasksByStatus = (status: Task['status']) =>
+//     tasks
+//       .filter((task) => task.status === status)
+//       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+
+const getTasksByStatus = (status: Task['status']) =>
+    filteredTasks
       .filter((task) => task.status === status)
       .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
   
@@ -102,29 +118,58 @@ const handleDragEnd = (result: DropResult) => {
           onClick={openAddModal}
           className="bg-blue-600 text-white px-4 py-2 rounded shadow"
         >
-          + Add Task
+          + Create Task
         </button>
       </div>
 
-      <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-6 px-6 w-full">
-          {(['todo', 'inprogress', 'done'] as Task['status'][]).map((status) => (
-            <div key={status} className="flex-1">
-              <TaskColumn
-                droppableId={status}
-                title={
-                  status === 'todo' ? 'To Do' : status === 'inprogress' ? 'In Progress' : 'Done'
-                }
-                color={status === 'todo' ? 'yellow' : status === 'inprogress' ? 'blue' : 'green'}
-                tasks={getTasksByStatus(status)}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onDoubleClick={(task) => setSelectedTask(task)}
-              />
-            </div>
-          ))}
-        </div>
-      </DragDropContext>
+<QuickFilterNav
+  filter={filter}
+  setFilter={setFilter}
+  selectedAssignee={selectedAssignee}
+  setSelectedAssignee={setSelectedAssignee}
+  tasks={tasks}
+/>
+
+
+  <DragDropContext onDragEnd={handleDragEnd}>
+    <div className="flex gap-6 px-6 w-full">
+      {(['todo', 'inprogress', 'inreview', 'done'] as Task['status'][]).map((status) => {
+        const columnTasks = getTasksByStatus(status).filter((task) =>
+          filter === 'all' ? true : task.status === filter
+        );
+
+        return (
+          <div key={status} className="flex-1">
+            <TaskColumn
+              droppableId={status}
+              title={
+                status === 'todo'
+                  ? 'To Do'
+                  : status === 'inprogress'
+                  ? 'In Progress'
+                  : status === 'inreview'
+                  ? 'In Review'
+                  : 'Done'
+              }
+              color={
+                status === 'todo'
+                  ? 'yellow'
+                  : status === 'inprogress'
+                  ? 'blue'
+                  : status === 'inreview'
+                  ? 'purple'
+                  : 'green'
+              }
+              tasks={columnTasks}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onDoubleClick={(task) => setSelectedTask(task)}
+            />
+          </div>
+        );
+      })}
+    </div>
+  </DragDropContext>
 
       {showModal && (
         <AddTaskModal

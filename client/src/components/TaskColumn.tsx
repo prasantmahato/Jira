@@ -26,6 +26,7 @@ const TaskColumn: React.FC<Props> = ({
   const colorClasses: Record<string, string> = {
     yellow: 'text-yellow-600',
     blue: 'text-blue-600',
+    purple: 'text-purple-600',
     green: 'text-green-600',
   };
 
