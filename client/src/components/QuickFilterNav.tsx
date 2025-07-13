@@ -25,7 +25,7 @@ const QuickFilterNav: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 px-6 py-4 bg-white shadow-sm rounded-lg border border-gray-200 mb-6">
+    <div className="flex flex-col gap-4 px-6 py-4 bg-white shadow-xs rounded-lg border border-gray-200 mb-6">
       {/* Assignee Filter */}
       <div className="flex items-center gap-3">
         <div className="flex items-center text-sm text-gray-700 font-medium gap-2">
