@@ -1,0 +1,76 @@
+name: Summarize issues and pull requests
+
+on:
+  issues:
+    types: [opened]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  summarize:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+      models: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Detect if it's an issue or a pull request
+      - name: Set event type
+        id: set-type
+        run: echo "type=${{ github.event_name }}" >> $GITHUB_OUTPUT
+
+      # For issues
+      - name: Summarize issue
+        if: steps.set-type.outputs.type == 'issues'
+        id: issue-summary
+        uses: actions/ai-inference@v1
+        with:
+          prompt: |
+            Summarize the following GitHub issue in one paragraph:
+            Title: ${{ github.event.issue.title }}
+            Body: ${{ github.event.issue.body }}
+
+      - name: Comment on issue
+        if: steps.set-type.outputs.type == 'issues'
+        run: |
+          gh issue comment $ISSUE_NUMBER --body '${{ steps.issue-summary.outputs.response }}'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+
+      # For pull requests
+      - name: Get PR diff
+        if: steps.set-type.outputs.type == 'pull_request'
+        id: pr-diff
+        run: |
+          echo "diff<<EOF" >> $GITHUB_OUTPUT
+          gh pr diff $PR_NUMBER >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+
+      - name: Summarize pull request
+        if: steps.set-type.outputs.type == 'pull_request'
+        id: pr-summary
+        uses: actions/ai-inference@v1
+        with:
+          prompt: |
+            Summarize the following pull request in one paragraph:
+            Title: ${{ github.event.pull_request.title }}
+            Body: ${{ github.event.pull_request.body }}
+            Changes:
+            ${{ steps.pr-diff.outputs.diff }}
+
+      - name: Comment on pull request
+        if: steps.set-type.outputs.type == 'pull_request'
+        run: |
+          gh pr comment $PR_NUMBER --body '${{ steps.pr-summary.outputs.response }}'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
