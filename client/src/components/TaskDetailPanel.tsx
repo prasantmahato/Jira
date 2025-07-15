@@ -122,7 +122,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
           {type === 'textarea' ? (
             <textarea
               id={field}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200"
               value={value}
               onChange={(e) => handleFieldChange(field, e.target.value)}
               rows={4}
@@ -132,7 +132,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
           ) : type === 'select' && options ? (
             <select
               id={field}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200 appearance-none"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200 appearance-none"
               value={value}
               onChange={(e) => handleFieldChange(field, e.target.value)}
               aria-label={label}
@@ -148,7 +148,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
             <input
               id={field}
               type="number"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200"
               value={value}
               onChange={(e) => handleFieldChange(field, e.target.value)}
               placeholder={`Enter ${label.toLowerCase()}`}
@@ -158,7 +158,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
             <input
               id={field}
               type="text"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200"
               value={value}
               onChange={(e) => handleFieldChange(field, e.target.value)}
               placeholder={`Enter ${label.toLowerCase()}`}
@@ -184,7 +184,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
         <button
           onClick={onClose}
           onKeyDown={(e) => handleKeyDown(e, onClose)}
-          className="text-gray-500 hover:text-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-300 rounded-full p-1 transition-colors duration-200"
+          className="text-gray-500 hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 rounded-full p-1 transition-colors duration-200"
           aria-label="Close task details"
         >
           <FiX size={24} />
@@ -206,7 +206,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
           <button
             onClick={cancelEdit}
             onKeyDown={(e) => handleKeyDown(e, cancelEdit)}
-            className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
+            className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200"
             aria-label="Cancel edits"
           >
             Cancel
@@ -214,7 +214,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
           <button
             onClick={saveAllFields}
             onKeyDown={(e) => handleKeyDown(e, saveAllFields)}
-            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200"
             aria-label="Save changes"
           >
             Save
@@ -234,7 +234,7 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
                 className="bg-gray-50 p-3 rounded-lg text-gray-800 animate-fade-in"
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-sm font-medium">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-medium">
                     {c.text.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
@@ -255,13 +255,13 @@ const TaskDetailPanel: React.FC<Props> = ({ task, onClose, onUpdate }) => {
             onChange={(e) => setNewComment(e.target.value)}
             placeholder="Add a comment"
             maxLength={500}
-            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 transition-all duration-200"
+            className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 transition-all duration-200"
             aria-label="New comment"
           />
           <button
             onClick={handleAddComment}
             onKeyDown={(e) => handleKeyDown(e, handleAddComment)}
-            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200"
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200"
             disabled={!newComment.trim().length}
             aria-label="Add comment"
           >

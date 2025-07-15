@@ -38,9 +38,9 @@ const QuickFilterNav: React.FC<Props> = ({
             onKeyDown={(e) => handleKeyDown(e, () => setSelectedAssignee('all'))}
             className={`px-3 py-1.5 rounded-md text-sm font-medium transition border ${
               selectedAssignee === 'all'
-                ? 'bg-indigo-600 text-white border-indigo-600'
+                ? 'bg-blue-600 text-white border-blue-600'
                 : 'border-gray-200 text-gray-600 hover:bg-gray-100'
-            } focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2`}
+            } focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2`}
             aria-label="Filter by all assignees"
             aria-pressed={selectedAssignee === 'all'}
           >
@@ -53,9 +53,9 @@ const QuickFilterNav: React.FC<Props> = ({
               onKeyDown={(e) => handleKeyDown(e, () => setSelectedAssignee(name))}
               className={`px-3 py-1.5 rounded-md text-sm font-medium transition border ${
                 selectedAssignee === name
-                  ? 'bg-indigo-600 text-white border-indigo-600'
+                  ? 'bg-blue-600 text-white border-blue-600'
                   : 'border-gray-200 text-gray-600 hover:bg-gray-100'
-              } focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2`}
+              } focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2`}
               aria-label={`Filter by assignee ${name}`}
               aria-pressed={selectedAssignee === name}
             >

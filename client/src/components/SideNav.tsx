@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, List, BarChart, Settings, ChevronsRight, X } from 'lucide-react';
+import { LayoutDashboard, List, BarChart, Settings, ChevronsRight, ChevronsLeft, ShieldUser } from 'lucide-react';
 
 interface NavItem {
   path: string;
@@ -24,6 +24,7 @@ const SideNav: React.FC<Props> = ({ navbarHeight, isCollapsed, setIsCollapsed })
     { path: '/backlog', label: 'Backlog', icon: List },
     { path: '/reports', label: 'Reports', icon: BarChart },
     { path: '/settings', label: 'Settings', icon: Settings },
+    { path: '/admin', label: 'Admin', icon: ShieldUser },
   ];
 
   const handleKeyDown = (e: React.KeyboardEvent, path: string) => {
@@ -52,9 +53,9 @@ const SideNav: React.FC<Props> = ({ navbarHeight, isCollapsed, setIsCollapsed })
                   isCollapsed ? 'justify-center' : ''
                 } ${
                   isActive
-                    ? 'bg-indigo-600 text-white'
+                    ? 'bg-blue-600 text-white'
                     : 'text-gray-600 hover:bg-gray-100'
-                } focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2`
+                } focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2`
               }
               onKeyDown={(e) => handleKeyDown(e, path)}
               aria-label={`Navigate to ${label}`}
@@ -75,10 +76,10 @@ const SideNav: React.FC<Props> = ({ navbarHeight, isCollapsed, setIsCollapsed })
               toggleSidebar();
             }
           }}
-          className="p-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-1 focus:ring-indigo-300"
+          className="p-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-300"
           aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {isCollapsed ? <ChevronsRight className="w-5 h-5" /> : <X className="w-5 h-5" />}
+          {isCollapsed ? <ChevronsRight className="w-5 h-5" /> : <ChevronsLeft className="w-5 h-5" />}
         </button>
       </div>
     </nav>

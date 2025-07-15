@@ -28,7 +28,7 @@ const TaskColumn: React.FC<Props> = ({
 }) => {
   const colorClasses: Record<string, string> = {
     yellow: 'bg-yellow-500',
-    blue: 'bg-indigo-600',
+    blue: 'bg-blue-600',
     purple: 'bg-purple-600',
     green: 'bg-green-500',
   };
@@ -44,17 +44,17 @@ const TaskColumn: React.FC<Props> = ({
 
   return (
     <div
-      className="flex-1 min-w-[250px] bg-white rounded-lg p-6 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
+      className="flex-1 min-w-[250px] bg-white rounded-md p-1 border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200"
       role="region"
       aria-label={`${title} column`}
     >
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3 mb-4 pl-3">
         <div className={`w-3 h-3 rounded-full ${colorClasses[color]}`} aria-hidden="true" />
         <button
           onClick={() => onFilterByStatus(droppableId, currentFilter)}
           onKeyDown={handleKeyDown}
           className={`text-xl font-bold transition-colors duration-200 rounded focus:outline-none ${
-            isFiltered ? 'text-indigo-600 hover:text-indigo-700 text-decoration-line: underline': 'text-gray-900 hover:text-indigo-600'
+            isFiltered ? 'text-blue-600 hover:text-blue-700 text-decoration-line: underline': 'text-gray-900 hover:text-blue-600'
           }`}
           role="button"
           tabIndex={0}
@@ -70,8 +70,8 @@ const TaskColumn: React.FC<Props> = ({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`space-y-3 min-h-[100px] transition-all duration-200 ${
-              snapshot.isDraggingOver ? 'bg-indigo-50 border-indigo-300' : 'bg-white'
-            } rounded-md p-2`}
+              snapshot.isDraggingOver ? 'bg-green-50 border-green-200' : 'bg-white'
+            } rounded-md p-1`}
             tabIndex={0}
             aria-describedby={`column-title-${droppableId}`}
           >

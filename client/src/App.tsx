@@ -5,6 +5,8 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Navbar from './components/Navbar';
 import Layout from './components/Layout';
+import Admin from './pages/Admin';
+import ForgotPassword from './components/ForgotPassword';
 
 const App: React.FC = () => {
   return (
@@ -15,6 +17,8 @@ const App: React.FC = () => {
           <Route path="/" element={<Layout><Dashboard /></Layout>} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/admin" element={<Layout><Admin /></Layout>} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
         </Routes>
       </div>
     </Router>

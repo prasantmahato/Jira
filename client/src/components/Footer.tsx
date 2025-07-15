@@ -9,7 +9,7 @@ const Footer = () => {
           {/* Branding Section */}
           <div className="flex-shrink-0 w-64 mx-auto text-center md:mx-0 md:text-left">
             <a href="/" className="flex items-center justify-center font-bold text-gray-900 title-font md:justify-start transition-transform duration-300 hover:scale-105">
-              <svg className="w-auto h-6 text-indigo-600 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-auto h-6 text-blue-600 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path fillRule="nonzero" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-14a6 6 0 00-6 6c0 2.21 1.79 4 4 4h1v2h2v-2h1c2.21 0 4-1.79 4-4a6 6 0 00-6-6zm0 8h-2c-1.1 0-2-.9-2-2s.9-2 2-2h2c1.1 0 2 .9 2 2s-.9 2-2 2z" />
               </svg>
             </a>
@@ -24,7 +24,7 @@ const Footer = () => {
                 ].map((icon, index) => (
                   <a
                     key={index}
-                    className="text-gray-500 cursor-pointer hover:text-indigo-600 transition-colors duration-300 transform hover:scale-110"
+                    className="text-gray-500 cursor-pointer hover:text-blue-600 transition-colors duration-300 transform hover:scale-110"
                     aria-label={icon.platform}
                   >
                     <svg
@@ -88,7 +88,7 @@ const Footer = () => {
                     <li key={linkIndex} className="mt-3">
                       <a
                         href={link.href}
-                        className="text-gray-500 hover:text-indigo-600 transition-colors duration-300 text-sm font-light"
+                        className="text-gray-500 hover:text-blue-600 transition-colors duration-300 text-sm font-light"
                       >
                         {link.text}
                       </a>
@@ -106,7 +106,7 @@ const Footer = () => {
             <p className="text-sm text-gray-500 font-light">© 2025 All rights reserved | Powered by Atlassian</p>
             <a
               href="https://support.example.com/feedback"
-              className="text-xs text-gray-600 hover:text-indigo-600 transition-colors duration-300"
+              className="text-xs text-gray-600 hover:text-blue-600 transition-colors duration-300"
             >
               Report a Bug
             </a>
