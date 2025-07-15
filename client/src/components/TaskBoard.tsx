@@ -113,7 +113,7 @@ const TaskBoard: React.FC = () => {
         <h1 className="text-2xl font-semibold text-gray-900">Team-Thor Kanban Board</h1>
         <button
           onClick={openAddModal}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2 transition-all duration-200"
+          className="text-blue-700 font-bold px-4 py-2 rounded-lg shadow hover:text-white hover:bg-blue-700 border hover:border-blue-700 focus:outline-none transition-all duration-200"
         >
           + Create Task
         </button>
@@ -128,7 +128,7 @@ const TaskBoard: React.FC = () => {
       />
 
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="flex gap-6 px-6 w-full">
+        <div className="flex gap-5 px-6 w-full">
           {(['todo', 'inprogress', 'review', 'done'] as Task['status'][]).map((status) => {
             const columnTasks = getTasksByStatus(status);
 

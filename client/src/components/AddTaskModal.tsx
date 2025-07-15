@@ -153,7 +153,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               ref={firstInputRef}
               className={`mt-1 w-full border ${
                 errors.title ? 'border-red-300' : 'border-gray-200'
-              } rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200`}
+              } rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline focus:ring-1 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200`}
               aria-label="Task title"
               aria-describedby={errors.title ? 'title-error' : undefined}
             />
@@ -174,7 +174,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className={`mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200`}
+              className={`mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200`}
               aria-label="Task description"
             />
           </div>
@@ -187,7 +187,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               id="status"
               value={status}
               onChange={(e) => setStatus(e.target.value as Task['status'])}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200"
               aria-label="Task status"
             >
               <option value="todo">To Do</option>
@@ -207,7 +207,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               placeholder="Enter assignee"
               value={assignee}
               onChange={(e) => setAssignee(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200"
               aria-label="Task assignee"
             />
           </div>
@@ -222,7 +222,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               placeholder="Enter reporter"
               value={reporter}
               onChange={(e) => setReporter(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200"
               aria-label="Task reporter"
             />
           </div>
@@ -237,7 +237,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               placeholder="Enter labels"
               value={labels}
               onChange={(e) => setLabels(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200"
               aria-label="Task labels"
             />
           </div>
@@ -252,7 +252,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               placeholder="Enter sprint number"
               value={sprintNo}
               onChange={(e) => setSprintNo(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200"
               aria-label="Sprint number"
             />
           </div>
@@ -267,7 +267,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               placeholder="Enter project number"
               value={projectNo}
               onChange={(e) => setProjectNo(e.target.value)}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200"
               aria-label="Project number"
             />
           </div>
@@ -282,7 +282,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               value={acceptanceCriteria}
               onChange={(e) => setAcceptanceCriteria(e.target.value)}
               rows={4}
-              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+              className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200"
               aria-label="Acceptance criteria"
             />
           </div>
@@ -300,14 +300,14 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
               }}
               className={`mt-1 w-full border ${
                 errors.taskType ? 'border-red-300' : 'border-gray-200'
-              } rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200`}
+              } rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200`}
               aria-label="Task type"
               aria-describedby={errors.taskType ? 'taskType-error' : undefined}
             >
               <option value="">Select task type</option>
-              <option value="bug">Bug</option>
-              <option value="spike">Spike</option>
-              <option value="ticket">Ticket</option>
+              <option value="Bug">Bug</option>
+              <option value="Spike">Spike</option>
+              <option value="Ticket">Ticket</option>
             </select>
             {errors.taskType && (
               <p id="taskType-error" className="text-xs text-red-600 mt-1" aria-live="polite">
@@ -322,7 +322,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
           <button
             onClick={onClose}
             onKeyDown={(e) => handleKeyDown(e, onClose)}
-            className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
+            className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300 transition-all duration-200"
             aria-label="Cancel task"
           >
             Cancel
@@ -330,7 +330,7 @@ const AddTaskModal: React.FC<Props> = ({ onAddOrUpdate, onClose, initialTask }) 
           <button
             onClick={handleSubmit}
             onKeyDown={(e) => handleKeyDown(e, handleSubmit)}
-            className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200"
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200"
             disabled={!title.trim() || !taskType}
             aria-label={isEdit ? 'Update task' : 'Add task'}
           >

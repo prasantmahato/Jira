@@ -1,4 +1,3 @@
-// TaskCard.tsx
 import React, { useState } from 'react';
 import { Task } from './types';
 import { FiEdit, FiTrash2, FiMoreHorizontal } from 'react-icons/fi';
@@ -28,13 +27,13 @@ const TaskCard: React.FC<Props> = ({ task, index, onEdit, onDelete, onDoubleClic
     <Draggable draggableId={task.id.toString()} index={index}>
       {(provided) => (
         <div
-          className={`mb-3 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 ${borderClass}`}
+          className={`w-full mb-3 rounded-md shadow-sm hover:shadow-md transition-shadow duration-200 ${borderClass}`}
         >
           <div
             ref={provided.innerRef}
             {...provided.draggableProps}
             {...provided.dragHandleProps}
-            className="relative bg-white border border-gray-100 rounded-t-md px-4 py-3"
+            className="relative w-full bg-white border border-gray-100 rounded-t-md px-4 py-3"
             onDoubleClick={() => onDoubleClick?.(task)}
           >
             {/* Title + Menu */}
@@ -51,6 +50,7 @@ const TaskCard: React.FC<Props> = ({ task, index, onEdit, onDelete, onDoubleClic
                 <button
                   onClick={() => setShowMenu(!showMenu)}
                   className="text-gray-400 hover:text-gray-600"
+                  aria-label="Task options"
                 >
                   <FiMoreHorizontal size={18} />
                 </button>
@@ -61,13 +61,15 @@ const TaskCard: React.FC<Props> = ({ task, index, onEdit, onDelete, onDoubleClic
                   >
                     <button
                       onClick={() => onEdit(task)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full"
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 w-full text-left"
+                      aria-label={`Edit task ${task.title}`}
                     >
                       <FiEdit size={14} /> Edit
                     </button>
                     <button
                       onClick={() => onDelete(task.id)}
-                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 text-red-600 w-full"
+                      className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100 text-red-600 w-full text-left"
+                      aria-label={`Delete task ${task.title}`}
                     >
                       <FiTrash2 size={14} /> Delete
                     </button>
