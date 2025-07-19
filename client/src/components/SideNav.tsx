@@ -20,7 +20,7 @@ const SideNav: React.FC<Props> = ({ navbarHeight, isCollapsed, setIsCollapsed })
   };
 
   const navItems: NavItem[] = [
-    { path: '/board', label: 'Board', icon: LayoutDashboard },
+    { path: '/', label: 'Board', icon: LayoutDashboard },
     { path: '/backlog', label: 'Backlog', icon: List },
     { path: '/reports', label: 'Reports', icon: BarChart },
     { path: '/settings', label: 'Settings', icon: Settings },
@@ -49,7 +49,7 @@ const SideNav: React.FC<Props> = ({ navbarHeight, isCollapsed, setIsCollapsed })
             <NavLink
               to={path}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-2 text-sm font-medium rounded-md transition ${
+                `flex items-center gap-3 px-4 py-2 mt-1 text-sm font-medium rounded-md transition ${
                   isCollapsed ? 'justify-center' : ''
                 } ${
                   isActive
