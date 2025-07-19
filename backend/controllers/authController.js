@@ -16,9 +16,11 @@ const generateTokens = (user) => {
 
   const accessToken = jwt.sign(payload, authConfig.jwtSecret, {
     expiresIn: authConfig.jwtExpiration,
-    issuer: 'jira-clone',
-    audience: 'jira-clone-users'
+    // issuer: 'jira-clone',
+    // audience: 'jira-clone-users'
   });
+
+  console.log('🔐 Access Token:', accessToken);
 
   const refreshToken = jwt.sign(payload, authConfig.jwtRefreshSecret, {
     expiresIn: authConfig.jwtRefreshExpiration,

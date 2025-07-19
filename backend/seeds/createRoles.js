@@ -4,21 +4,24 @@ import dotenv from 'dotenv';
 import connectDB from '../config/db.js';
 import Permission from '../models/Permission.js';
 import Role from '../models/Role.js';
+import Project from '../models/Project.js';
 import { permissionsData } from './data/permissions.js';
 import { rolesData } from './data/roles.js';
+import { projectsData } from './data/projects.js';
 
 dotenv.config();
 
-const seedRolesAndPermissions = async () => {
+const seedDatabase = async () => {
   try {
     // Connect to database
     await connectDB();
     console.log('🔗 Connected to MongoDB for seeding...');
 
     // Clear existing data (optional - remove in production)
-    console.log('🧹 Clearing existing roles and permissions...');
+    console.log('🧹 Clearing existing data...');
     await Role.deleteMany({});
     await Permission.deleteMany({});
+    await Project.deleteMany({});
 
     // Create permissions first
     console.log('🔐 Creating permissions...');
@@ -53,21 +56,39 @@ const seedRolesAndPermissions = async () => {
     const createdRoles = await Promise.all(rolePromises);
     console.log(`✅ Created ${createdRoles.length} roles`);
 
+    // Create projects
+    console.log('🏗️  Creating projects...');
+    const createdProjects = await Project.insertMany(projectsData);
+    console.log(`✅ Created ${createdProjects.length} projects`);
+
     // Display summary
     console.log('\n📊 Seeding Summary:');
     console.log('==================');
     
+    // Display roles and permissions
     for (const role of createdRoles) {
       await role.populate('permissions');
-      console.log(`\n${role.name}:`);
-      console.log(`  Description: ${role.description}`);
-      console.log(`  Permissions: ${role.permissions.length}`);
-      role.permissions.forEach(permission => {
-        console.log(`    - ${permission.name}: ${permission.description}`);
-      });
+      console.log(`\n👤 ${role.name}:`);
+      console.log(`   Description: ${role.description}`);
+      console.log(`   Permissions: ${role.permissions.length}`);
     }
 
+    // Display projects
+    console.log('\n🏗️  Projects Created:');
+    createdProjects.forEach(project => {
+      console.log(`\n📁 ${project.name} (${project.key}):`);
+      console.log(`   Description: ${project.description}`);
+      console.log(`   Category: ${project.category}`);
+      console.log(`   Status: ${project.status}`);
+      console.log(`   Visibility: ${project.visibility}`);
+    });
+
     console.log('\n🎉 Database seeding completed successfully!');
+    console.log(`\n📊 Final Count:`);
+    console.log(`   • ${createdPermissions.length} permissions`);
+    console.log(`   • ${createdRoles.length} roles`);
+    console.log(`   • ${createdProjects.length} projects`);
+
     process.exit(0);
 
   } catch (error) {
@@ -78,7 +99,7 @@ const seedRolesAndPermissions = async () => {
 
 // Run seeding if this file is executed directly
 if (import.meta.url === `file://${process.argv[1]}`) {
-  seedRolesAndPermissions();
+  seedDatabase();
 }
 
-export default seedRolesAndPermissions;
+export default seedDatabase;

@@ -4,11 +4,19 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import taskRoutes from './routes/taskRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { generalLimiter } from './middleware/rateLimiter.js';
 import { authenticateToken } from './middleware/auth.js';
+
+import './models/index.js';
+import './models/Permission.js';
+import './models/RefreshToken.js';
+
+console.log('📦 All models registered');
+
 
 dotenv.config();
 connectDB();
@@ -54,6 +62,9 @@ app.get('/', (req, res) => {
 app.get('/api/test', (req, res) => {
   res.send('✅ API working');
 });
+
+// User routes
+app.use('/api/users', userRoutes);
 
 // Routes
 app.use('/api/auth', authRoutes);

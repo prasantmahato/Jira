@@ -46,14 +46,14 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Role'
   }],
+  // models/User.js
   projects: [{
-    project: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Project'
-    },
-    role: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Role'
+    project: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Project' },
+    role:    { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Role' 
     }
   }],
   loginAttempts: {
