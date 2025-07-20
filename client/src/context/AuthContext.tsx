@@ -212,7 +212,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-// AuthContext.tsx - Fixed refreshToken function
 const refreshToken = async () => {
   try {
     const response = await fetch(`${API_BASE}/api/auth/refresh`, {
@@ -276,3 +275,5 @@ const refreshToken = async () => {
     </AuthContext.Provider>
   );
 };
+
+export { AuthContext };
