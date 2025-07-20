@@ -5,6 +5,7 @@ import RefreshToken from '../models/RefreshToken.js';
 import jwt from 'jsonwebtoken';
 import { authConfig } from '../config/auth.config.js';
 import { validationResult } from 'express-validator';
+import mongoose from 'mongoose';
 
 // Generate JWT tokens
 const generateTokens = (user) => {
@@ -235,69 +236,200 @@ export const logout = async (req, res) => {
   }
 };
 
+// const existingToken = await RefreshToken.findOne({ token: newRefreshToken });
+// if (existingToken) {
+//   // Token already exists (probably a race condition, or double call)
+//   // Instead of inserting again, just acknowledge success or skip
+//   return res.json({ accessToken, user: refreshTokenDoc.user });
+// }
+
+
 // Refresh access token
+// In authController.js - Enhanced conflict handling
 export const refreshToken = async (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
-
-    if (!refreshToken) {
-      return res.status(401).json({
-        error: 'Refresh token is required'
-      });
-    }
-
-    // Verify refresh token
-    const decoded = jwt.verify(refreshToken, authConfig.jwtRefreshSecret);
-
-    // Find token in database
-    const refreshTokenDoc = await RefreshToken.findOne({
-      token: refreshToken,
-      user: decoded.userId,
-      isRevoked: false
-    }).populate('user');
-
-    if (!refreshTokenDoc || refreshTokenDoc.expiresAt < new Date()) {
-      return res.status(401).json({
-        error: 'Invalid or expired refresh token'
-      });
-    }
-
-    // Generate new token pair (token rotation)
-    const { accessToken, refreshToken: newRefreshToken } = generateTokens(refreshTokenDoc.user);
-
-    // Revoke old refresh token
-    await RefreshToken.findByIdAndUpdate(refreshTokenDoc._id, { isRevoked: true });
-
-    // Store new refresh token
-    const newRefreshTokenDoc = new RefreshToken({
-      token: newRefreshToken,
-      user: refreshTokenDoc.user._id,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      deviceInfo: {
-        userAgent: req.headers['user-agent'],
-        ipAddress: req.ip
+    try {
+      const refreshToken = 
+        (req.cookies && req.cookies.refreshToken) || 
+        (req.body && req.body.refreshToken);
+  
+      if (!refreshToken) {
+        return res.status(401).json({
+          error: 'Refresh token is required'
+        });
       }
-    });
-
-    await newRefreshTokenDoc.save();
-
-    // Set new cookie
-    res.cookie('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000
-    });
-
-    res.json({
-      message: 'Token refreshed successfully',
-      accessToken
-    });
-
-  } catch (error) {
-    console.error('Token refresh error:', error);
-    res.status(401).json({
-      error: 'Invalid refresh token'
-    });
-  }
-};
+  
+      // Check if this token was already rotated recently (within last 10 seconds)
+      const recentlyRotated = await RefreshToken.findOne({
+        token: refreshToken,
+        isRevoked: true,
+        updatedAt: { $gt: new Date(Date.now() - 10000) }
+      });
+  
+      if (recentlyRotated) {
+        console.log('Token was recently rotated, checking for new token');
+        
+        // Find the most recent valid token for this user
+        const latestToken = await RefreshToken.findOne({
+          user: recentlyRotated.user,
+          isRevoked: false,
+          expiresAt: { $gt: new Date() }
+        }).populate('user').sort({ createdAt: -1 });
+  
+        if (latestToken) {
+          // Generate new access token using existing refresh token
+          const { accessToken } = generateTokens(latestToken.user);
+          
+          return res.json({
+            message: 'Using recent token rotation',
+            accessToken,
+            user: latestToken.user.toJSON()
+          });
+        }
+      }
+  
+      // Verify the refresh token
+      let decoded;
+      try {
+        decoded = jwt.verify(refreshToken, authConfig.jwtRefreshSecret);
+      } catch (jwtError) {
+        return res.status(401).json({
+          error: 'Invalid or expired refresh token'
+        });
+      }
+  
+      // Find token in database
+      const refreshTokenDoc = await RefreshToken.findOne({
+        token: refreshToken,
+        user: decoded.userId,
+        isRevoked: false
+      }).populate('user');
+  
+      if (!refreshTokenDoc || refreshTokenDoc.expiresAt < new Date()) {
+        return res.status(401).json({
+          error: 'Invalid or expired refresh token'
+        });
+      }
+  
+      // Generate new tokens
+      const { accessToken, refreshToken: newRefreshToken } = generateTokens(refreshTokenDoc.user);
+  
+      // Use atomic operations to prevent race conditions
+      try {
+        // Start a transaction
+        const session = await mongoose.startSession();
+        
+        await session.withTransaction(async () => {
+          // Check once more if token is still valid
+          const stillValid = await RefreshToken.findOne({
+            _id: refreshTokenDoc._id,
+            isRevoked: false
+          }).session(session);
+          
+          if (!stillValid) {
+            throw new Error('Token already rotated');
+          }
+  
+          // Revoke old token
+          await RefreshToken.findByIdAndUpdate(
+            refreshTokenDoc._id, 
+            { isRevoked: true },
+            { session }
+          );
+  
+          // Create new token
+          const newRefreshTokenDoc = new RefreshToken({
+            token: newRefreshToken,
+            user: refreshTokenDoc.user._id,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            deviceInfo: {
+              userAgent: req.headers['user-agent'],
+              ipAddress: req.ip
+            }
+          });
+  
+          await newRefreshTokenDoc.save({ session });
+        });
+  
+        await session.endSession();
+  
+      } catch (transactionError) {
+        console.log('Transaction failed:', transactionError.message);
+        
+        if (transactionError.message.includes('already rotated')) {
+          return res.status(409).json({
+            error: 'Token already rotated',
+            code: 'TOKEN_ALREADY_ROTATED'
+          });
+        }
+        
+        throw transactionError;
+      }
+  
+      // Set new cookie
+      res.cookie('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+        maxAge: 7 * 24 * 60 * 60 * 1000
+      });
+  
+      res.json({
+        message: 'Token refreshed successfully',
+        accessToken,
+        user: refreshTokenDoc.user.toJSON()
+      });
+  
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      res.status(401).json({
+        error: 'Invalid refresh token'
+      });
+    }
+  };
+   
+  
+  const refreshTokenWithRetry = async (maxRetries = 2) => {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        await refreshToken();
+        return; // Success
+      } catch (error) {
+        if (error.message.includes('conflict') && attempt < maxRetries - 1) {
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 200 * (attempt + 1)));
+          continue;
+        }
+        throw error; // Give up
+      }
+    }
+  };
+  
+  
+// Get user profile
+// In authController.js
+export const getProfile = async (req, res) => {
+    try {
+      const user = await User.findById(req.user._id)
+        .populate('roles', 'name description')
+        .populate('projects.project', 'name key')
+        .populate('projects.role', 'name');
+  
+      if (!user) {
+        return res.status(404).json({
+          error: 'User not found'
+        });
+      }
+  
+      res.json({
+        success: true,
+        user: user.toJSON()
+      });
+    } catch (error) {
+      console.error('Get profile error:', error);
+      res.status(500).json({
+        error: 'Failed to get user profile'
+      });
+    }
+  };
+  
+  

@@ -1,81 +1,175 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { 
+  UserCircleIcon, 
+  ChevronDownIcon,
+  Cog6ToothIcon,
+  ArrowRightCircleIcon,
+  UserIcon
+} from '@heroicons/react/24/outline';
+import toast from 'react-hot-toast';
 
-const Navbar = () => {
+const Navbar: React.FC = () => {
+  const { user, logout, isAuthenticated } = useAuth();
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      toast.success('Logged out successfully');
+      navigate('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Error logging out');
+    }
+  };
+
+  const getUserDisplayName = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    return user?.username || user?.email || 'User';
+  };
+
+  const getUserInitials = () => {
+    if (user?.firstName && user?.lastName) {
+      return `${user.firstName[0]}${user.lastName[0]}`.toUpperCase();
+    }
+    return user?.username?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U';
+  };
+
+  if (!isAuthenticated) {
+    return null; // Don't show navbar on login/signup pages
+  }
+
   return (
-    <nav className="flex items-center justify-between flex-wrap bg-white py-4 lg:px-12 shadow border-solid border-t-2 border-blue-700">
-      <div className="flex justify-between lg:w-auto w-full lg:border-b-0 pl-6 pr-2 border-solid border-b-2 border-gray-300 pb-5 lg:pb-0">
-        <div className="flex items-center flex-shrink-0 text-gray-800 mr-16">
-          <Link to="/" className="font-semibold text-xl tracking-tight text-gray-800">
-          Jira
-          </Link>
-        </div>
-
-        <div className="block lg:hidden">
-          <button
-            id="nav"
-            className="flex items-center px-3 py-2 border-2 rounded text-blue-700 border-blue-700 hover:text-blue-700 hover:border-blue-700"
-          >
-            <svg
-              className="fill-current h-3 w-3"
-              viewBox="0 0 20 20"
-              xmlns="http://www.w3.org/2000/svg"
+    <nav className="bg-white shadow-sm border-b border-gray-200">
+      <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          {/* Logo */}
+          <div className="flex items-center">
+            <Link 
+              to="/" 
+              className="flex-shrink-0 flex items-center"
             >
-              <title>Menu</title>
-              <path d="M0 3h20v2H0V3zm0 6h20v2H0V9zm0 6h20v2H0v-2z" />
-            </svg>
-          </button>
-        </div>
-      </div>
+              <span className="text-2xl font-bold text-blue-600">JIRA</span>
+              <span className="text-lg font-medium text-gray-500 ml-1">Clone</span>
+            </Link>
+          </div>
 
-      <div className="menu w-full lg:block flex-grow lg:flex lg:items-center lg:w-auto lg:px-3 px-8">
-        <div className="text-md font-bold text-blue-700 lg:flex-grow">
-          <Link
-            to="/"
-            className="block mt-4 lg:inline-block lg:mt-0 hover:text-white px-4 py-2 rounded hover:bg-blue-700 mr-2"
-          >
-            Dashboard
-          </Link>
-        </div>
+          {/* User Menu */}
+          <div className="flex items-center space-x-4">
+            {user && (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="flex items-center space-x-3 text-sm bg-white rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 p-2 hover:bg-gray-50 transition-colors duration-200"
+                >
+                  {/* User Avatar */}
+                  {user.avatar ? (
+                    <img
+                      className="h-8 w-8 rounded-full object-cover"
+                      src={user.avatar}
+                      alt={getUserDisplayName()}
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-medium">
+                      {getUserInitials()}
+                    </div>
+                  )}
+                  
+                  <div className="hidden md:block text-left">
+                    <p className="text-sm font-medium text-gray-900">
+                      {getUserDisplayName()}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {user.roles[0]?.name || 'User'}
+                    </p>
+                  </div>
+                  
+                  <ChevronDownIcon 
+                    className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${
+                      showDropdown ? 'rotate-180' : ''
+                    }`} 
+                  />
+                </button>
 
-        {/* Search bar */}
-        <div className="relative mx-auto text-gray-600 lg:block hidden">
-          <input
-            className="border-2 border-gray-300 bg-white h-10 pl-2 pr-8 rounded-lg text-sm focus:outline-none"
-            type="search"
-            name="search"
-            placeholder="Search"
-          />
-          <button type="submit" className="absolute right-0 top-0 mt-3 mr-2">
-            <svg
-              className="text-gray-600 h-4 w-4 fill-current"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 56.966 56.966"
-              width="512px"
-              height="512px"
-            >
-              <path d="M55.146,51.887L41.588,37.786c3.486-4.144,5.396-9.358,5.396-14.786c0-12.682-10.318-23-23-23s-23,10.318-23,23  
-                       s10.318,23,23,23c4.761,0,9.298-1.436,13.177-4.162l13.661,14.208c0.571,0.593,1.339,0.92,2.162,0.92  
-                       c0.779,0,1.518-0.297,2.079-0.837C56.255,54.982,56.293,53.08,55.146,51.887z M23.984,6c9.374,0,17,7.626,17,17  
-                       s-7.626,17-17,17  s-17-7.626-17-17S14.61,6,23.984,6z" />
-            </svg>
-          </button>
-        </div>
+                {/* Dropdown Menu */}
+                {showDropdown && (
+                  <div className="origin-top-right absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+                    <div className="py-1">
+                      {/* User Info */}
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <p className="text-sm font-medium text-gray-900">
+                          {getUserDisplayName()}
+                        </p>
+                        <p className="text-sm text-gray-500">{user.email}</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {user.roles.map((role) => (
+                            <span
+                              key={role._id}
+                              className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                            >
+                              {role.name}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
 
-        {/* Auth Buttons */}
-        <div className="flex">
-          <Link
-            to="/login"
-            className="block text-md px-4 py-2 rounded text-blue-700 ml-2 font-bold hover:text-white mt-4 hover:bg-blue-700 lg:mt-0"
-          >
-            Login
-          </Link>
-          <Link
-            to="/signup"
-            className="block text-md px-4 py-2 rounded text-blue-700 ml-2 font-bold hover:text-white mt-4 hover:bg-blue-700 lg:mt-0"
-          >
-            Sign Up
-          </Link>
+                      {/* Menu Items */}
+                      <Link
+                        to="/settings"
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        <UserIcon className="h-4 w-4 mr-3" />
+                        Profile Settings
+                      </Link>
+
+                      {/* Admin Link - only show for admin users */}
+                      {user.roles.some(role => role.name === 'Admin') && (
+                        <Link
+                          to="/admin"
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                          onClick={() => setShowDropdown(false)}
+                        >
+                          <Cog6ToothIcon className="h-4 w-4 mr-3" />
+                          Admin Panel
+                        </Link>
+                      )}
+
+                      <hr className="border-gray-100" />
+                      
+                      <button
+                        onClick={() => {
+                          setShowDropdown(false);
+                          handleLogout();
+                        }}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors duration-200"
+                      >
+                        <ArrowRightCircleIcon className="h-4 w-4 mr-3" />
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </nav>

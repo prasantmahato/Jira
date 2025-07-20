@@ -1,11 +1,15 @@
 // routes/authRoutes.js
 import express from 'express';
 import { body } from 'express-validator';
+import { getProfile } from '../controllers/authController.js';
 import { register, login, logout, refreshToken } from '../controllers/authController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import rateLimit from 'express-rate-limit';
 
 const router = express.Router();
+
+
+router.get('/profile', authenticateToken, getProfile);
 
 // Rate limiting for auth endpoints
 const authLimiter = rateLimit({

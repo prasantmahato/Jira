@@ -8,6 +8,7 @@ import userRoutes from './routes/userRoutes.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import morgan from 'morgan';
 import { generalLimiter } from './middleware/rateLimiter.js';
 import { authenticateToken } from './middleware/auth.js';
 
@@ -35,6 +36,9 @@ app.use(helmet({
     },
   },
 }));
+
+//logs
+app.use(morgan('dev'))
 
 // Rate limiting
 app.use(generalLimiter);

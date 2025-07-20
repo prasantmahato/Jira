@@ -1,480 +1,456 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
-import Footer from '../components/Footer';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { usersApi } from '../api/auth';
+import toast from 'react-hot-toast';
+import { 
+  MagnifyingGlassIcon,
+  UserPlusIcon,
+  PencilIcon,
+  TrashIcon,
+  EyeIcon,
+  EyeSlashIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon
+} from '@heroicons/react/24/outline';
 
 interface User {
-  id: number;
-  name: string;
+  _id: string;
+  username: string;
   email: string;
-  role: 'Admin' | 'User';
+  firstName?: string;
+  lastName?: string;
+  isActive: boolean;
+  roles: Array<{
+    _id: string;
+    name: string;
+    description: string;
+  }>;
+  createdAt: string;
+  lastLogin?: string;
 }
 
-interface Project {
-  id: number;
-  name: string;
-  description: string;
-  status: 'Active' | 'Inactive';
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+  totalUsers: number;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 const Admin: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([
-    { id: 1, name: 'Admin User', email: 'admin@example.com', role: 'Admin' },
-    { id: 2, name: 'Regular User', email: 'user@example.com', role: 'User' },
-  ]);
-  const [projects, setProjects] = useState<Project[]>([
-    { id: 1, name: 'Project Alpha', description: 'Initial project', status: 'Active' },
-    { id: 2, name: 'Project Beta', description: 'Second project', status: 'Inactive' },
-  ]);
-  const [showUserModal, setShowUserModal] = useState(false);
-  const [showProjectModal, setShowProjectModal] = useState(false);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [editingProject, setEditingProject] = useState<Project | null>(null);
-  const [newUser, setNewUser] = useState({ name: '', email: '', role: 'User' as const });
-  const [newProject, setNewProject] = useState({ name: '', description: '', status: 'Active' as const });
-  const [userErrors, setUserErrors] = useState<{ name?: string }>({});
-  const [projectErrors, setProjectErrors] = useState<{ name?: string; description?: string }>({});
-  const userModalRef = useRef<HTMLDivElement>(null);
-  const projectModalRef = useRef<HTMLDivElement>(null);
-  const userFirstInputRef = useRef<HTMLInputElement>(null);
-  const projectFirstInputRef = useRef<HTMLInputElement>(null);
+  const { hasRole } = useAuth();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRole, setSelectedRole] = useState('all');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+    totalUsers: 0,
+    hasNext: false,
+    hasPrev: false
+  });
+
+  const roles = ['Admin', 'Project Manager', 'Developer', 'Tester', 'Viewer'];
+
+  // Check if user is admin
+  if (!hasRole('Admin')) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <p className="text-gray-600">You don't have permission to access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (showUserModal && userModalRef.current && !userModalRef.current.contains(e.target as Node)) {
-        setShowUserModal(false);
-        setEditingUser(null);
-        setNewUser({ name: '', email: '', role: 'User' });
-        setUserErrors({});
+    fetchUsers();
+  }, [pagination.currentPage, selectedRole, selectedStatus]);
+
+  useEffect(() => {
+    const delayedSearch = setTimeout(() => {
+      if (searchQuery) {
+        searchUsers();
+      } else {
+        fetchUsers();
       }
-      if (showProjectModal && projectModalRef.current && !projectModalRef.current.contains(e.target as Node)) {
-        setShowProjectModal(false);
-        setEditingProject(null);
-        setNewProject({ name: '', description: '', status: 'Active' });
-        setProjectErrors({});
-      }
-    };
+    }, 300);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showUserModal) {
-          setShowUserModal(false);
-          setEditingUser(null);
-          setNewUser({ name: '', email: '', role: 'User' });
-          setUserErrors({});
-        }
-        if (showProjectModal) {
-          setShowProjectModal(false);
-          setEditingProject(null);
-          setNewProject({ name: '', description: '', status: 'Active' });
-          setProjectErrors({});
-        }
-      }
-      const focusUserElements = userModalRef.current?.querySelectorAll('input, select, button');
-      const focusProjectElements = projectModalRef.current?.querySelectorAll('input, select, button');
-      if (focusUserElements && showUserModal) {
-        const firstUserElement = focusUserElements[0] as HTMLElement;
-        const lastUserElement = focusUserElements[focusUserElements.length - 1] as HTMLElement;
-        if (e.key === 'Tab' && e.shiftKey && document.activeElement === firstUserElement) {
-          e.preventDefault();
-          lastUserElement.focus();
-        } else if (e.key === 'Tab' && !e.shiftKey && document.activeElement === lastUserElement) {
-          e.preventDefault();
-          firstUserElement.focus();
-        }
-      }
-      if (focusProjectElements && showProjectModal) {
-        const firstProjectElement = focusProjectElements[0] as HTMLElement;
-        const lastProjectElement = focusProjectElements[focusProjectElements.length - 1] as HTMLElement;
-        if (e.key === 'Tab' && e.shiftKey && document.activeElement === firstProjectElement) {
-          e.preventDefault();
-          lastProjectElement.focus();
-        } else if (e.key === 'Tab' && !e.shiftKey && document.activeElement === lastProjectElement) {
-          e.preventDefault();
-          firstProjectElement.focus();
-        }
-      }
-    };
+    return () => clearTimeout(delayedSearch);
+  }, [searchQuery]);
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    if (showUserModal) userFirstInputRef.current?.focus();
-    if (showProjectModal) projectFirstInputRef.current?.focus();
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const params = {
+        page: pagination.currentPage,
+        limit: 10,
+        ...(selectedRole !== 'all' && { role: selectedRole }),
+        ...(selectedStatus !== 'all' && { isActive: selectedStatus === 'active' })
+      };
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [showUserModal, showProjectModal]);
-
-  const validateUser = () => {
-    const newErrors: { name?: string } = {};
-    if (!newUser.name.trim()) newErrors.name = 'Name is required';
-    setUserErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const validateProject = () => {
-    const newErrors: { name?: string; description?: string } = {};
-    if (!newProject.name.trim()) newErrors.name = 'Name is required';
-    if (!newProject.description.trim()) newErrors.description = 'Description is required';
-    setProjectErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleAddOrEditUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateUser()) return;
-    if (editingUser) {
-      setUsers(users.map(u => u.id === editingUser.id ? { ...newUser, id: editingUser.id } : u));
-      setEditingUser(null);
-    } else {
-      setUsers([...users, { ...newUser, id: Date.now() }]);
-    }
-    setNewUser({ name: '', email: '', role: 'User' });
-    setShowUserModal(false);
-    setUserErrors({});
-  };
-
-  const handleAddOrEditProject = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateProject()) return;
-    if (editingProject) {
-      setProjects(projects.map(p => p.id === editingProject.id ? { ...newProject, id: editingProject.id } : p));
-      setEditingProject(null);
-    } else {
-      setProjects([...projects, { ...newProject, id: Date.now() }]);
-    }
-    setNewProject({ name: '', description: '', status: 'Active' });
-    setShowProjectModal(false);
-    setProjectErrors({});
-  };
-
-  const handleDeleteUser = (id: number) => {
-    if (confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(u => u.id !== id));
+      const response = await usersApi.getAll(params);
+      setUsers(response.data.users);
+      setPagination(response.data.pagination);
+    } catch (error: any) {
+      console.error('Error fetching users:', error);
+      toast.error('Failed to fetch users');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleDeleteProject = (id: number) => {
-    if (confirm('Are you sure you want to delete this project?')) {
-      setProjects(projects.filter(p => p.id !== id));
+  const searchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await usersApi.search(searchQuery);
+      setUsers(response.data);
+      // Reset pagination for search results
+      setPagination({
+        currentPage: 1,
+        totalPages: 1,
+        totalUsers: response.count,
+        hasNext: false,
+        hasPrev: false
+      });
+    } catch (error: any) {
+      console.error('Error searching users:', error);
+      toast.error('Failed to search users');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent, action: () => void) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      action();
-      e.preventDefault();
+  const handleUpdateUserStatus = async (userId: string, isActive: boolean) => {
+    try {
+      await usersApi.updateStatus(userId, isActive);
+      toast.success(`User ${isActive ? 'activated' : 'deactivated'} successfully`);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error updating user status:', error);
+      toast.error('Failed to update user status');
     }
+  };
+
+  const handleDeleteUser = async (userId: string, username: string) => {
+    if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await usersApi.delete(userId);
+      toast.success('User deleted successfully');
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Error deleting user:', error);
+      toast.error(error.message || 'Failed to delete user');
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, currentPage: newPage }));
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getUserDisplayName = (user: User) => {
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    return user.username;
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto p-6">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6">Admin Panel</h1>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+          <p className="mt-2 text-gray-600">
+            Manage users, roles, and permissions for your JIRA Clone instance.
+          </p>
+        </div>
 
-        {/* User Management */}
-        <div className="bg-white border border-gray-200 shadow-sm rounded-md p-6 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Users</h2>
-            <button
-              onClick={() => { setEditingUser(null); setNewUser({ name: '', email: '', role: 'User' }); setShowUserModal(true); }}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2 transition-all duration-200"
-              aria-label="Add new user"
+        {/* Filters and Search */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            {/* Search */}
+            <div className="flex-1 relative">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search users by name, email, or username..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Role Filter */}
+            <select
+              value={selectedRole}
+              onChange={(e) => setSelectedRole(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
-              + Add User
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-600">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2">ID</th>
-                  <th className="px-4 py-2">Name</th>
-                  <th className="px-4 py-2">Email</th>
-                  <th className="px-4 py-2">Role</th>
-                  <th className="px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(user => (
-                  <tr key={user.id} className="border-b border-gray-200">
-                    <td className="px-4 py-2">{user.id}</td>
-                    <td className="px-4 py-2">{user.name}</td>
-                    <td className="px-4 py-2">{user.email}</td>
-                    <td className="px-4 py-2">{user.role}</td>
-                    <td className="px-4 py-2 flex gap-2">
-                      <button
-                        onClick={() => { setEditingUser(user); setNewUser(user); setShowUserModal(true); }}
-                        className="text-indigo-600 hover:text-indigo-700 focus:outline-none"
-                        aria-label={`Edit user ${user.name}`}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDeleteUser(user.id)}
-                        className="text-red-600 hover:text-red-700 focus:outline-none"
-                        aria-label={`Delete user ${user.name}`}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+              <option value="all">All Roles</option>
+              {roles.map(role => (
+                <option key={role} value={role}>{role}</option>
+              ))}
+            </select>
+
+            {/* Status Filter */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="all">All Statuses</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
           </div>
         </div>
 
-        {/* Project Management */}
-        <div className="bg-white border border-gray-200 shadow-sm rounded-md p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Projects</h2>
-            <button
-              onClick={() => { setEditingProject(null); setNewProject({ name: '', description: '', status: 'Active' }); setShowProjectModal(true); }}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-lg shadow hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:ring-offset-2 transition-all duration-200"
-              aria-label="Add new project"
-            >
-              + Add Project
-            </button>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left text-gray-600">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2">ID</th>
-                  <th className="px-4 py-2">Name</th>
-                  <th className="px-4 py-2">Description</th>
-                  <th className="px-4 py-2">Status</th>
-                  <th className="px-4 py-2">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map(project => (
-                  <tr key={project.id} className="border-b border-gray-200">
-                    <td className="px-4 py-2">{project.id}</td>
-                    <td className="px-4 py-2">{project.name}</td>
-                    <td className="px-4 py-2">{project.description}</td>
-                    <td className="px-4 py-2">{project.status}</td>
-                    <td className="px-4 py-2 flex gap-2">
+        {/* Users Table */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+          {loading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+              <p className="mt-4 text-gray-600">Loading users...</p>
+            </div>
+          ) : users.length === 0 ? (
+            <div className="p-8 text-center">
+              <UserPlusIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+              <p className="text-gray-600">
+                {searchQuery ? 'Try adjusting your search criteria.' : 'No users match the selected filters.'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        User
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Role
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Created
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Last Login
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {users.map((user) => (
+                      <tr key={user._id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 flex-shrink-0">
+                              <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
+                                {getUserDisplayName(user)[0].toUpperCase()}
+                              </div>
+                            </div>
+                            <div className="ml-4">
+                              <div className="text-sm font-medium text-gray-900">
+                                {getUserDisplayName(user)}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {user.email}
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                @{user.username}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex flex-wrap gap-1">
+                            {user.roles.map((role) => (
+                              <span
+                                key={role._id}
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                              >
+                                {role.name}
+                              </span>
+                            ))}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            user.isActive 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {user.isActive ? 'Active' : 'Inactive'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatDate(user.createdAt)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {user.lastLogin ? formatDate(user.lastLogin) : 'Never'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <div className="flex items-center justify-end gap-2">
+                            {/* Toggle Status */}
+                            <button
+                              onClick={() => handleUpdateUserStatus(user._id, !user.isActive)}
+                              className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium transition-colors duration-200 ${
+                                user.isActive
+                                  ? 'text-red-600 hover:bg-red-50'
+                                  : 'text-green-600 hover:bg-green-50'
+                              }`}
+                              title={user.isActive ? 'Deactivate user' : 'Activate user'}
+                            >
+                              {user.isActive ? (
+                                <EyeSlashIcon className="h-4 w-4" />
+                              ) : (
+                                <EyeIcon className="h-4 w-4" />
+                              )}
+                            </button>
+
+                            {/* Delete User */}
+                            <button
+                              onClick={() => handleDeleteUser(user._id, user.username)}
+                              className="inline-flex items-center px-2 py-1 rounded text-xs font-medium text-red-600 hover:bg-red-50 transition-colors duration-200"
+                              title="Delete user"
+                            >
+                              <TrashIcon className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 flex justify-between sm:hidden">
                       <button
-                        onClick={() => { setEditingProject(project); setNewProject(project); setShowProjectModal(true); }}
-                        className="text-indigo-600 hover:text-indigo-700 focus:outline-none"
-                        aria-label={`Edit project ${project.name}`}
+                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        disabled={!pagination.hasPrev}
+                        className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Edit
+                        Previous
                       </button>
                       <button
-                        onClick={() => handleDeleteProject(project.id)}
-                        className="text-red-600 hover:text-red-700 focus:outline-none"
-                        aria-label={`Delete project ${project.name}`}
+                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        disabled={!pagination.hasNext}
+                        className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Delete
+                        Next
                       </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                    <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm text-gray-700">
+                          Showing{' '}
+                          <span className="font-medium">
+                            {(pagination.currentPage - 1) * 10 + 1}
+                          </span>{' '}
+                          to{' '}
+                          <span className="font-medium">
+                            {Math.min(pagination.currentPage * 10, pagination.totalUsers)}
+                          </span>{' '}
+                          of{' '}
+                          <span className="font-medium">{pagination.totalUsers}</span>{' '}
+                          results
+                        </p>
+                      </div>
+                      <div>
+                        <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                          <button
+                            onClick={() => handlePageChange(pagination.currentPage - 1)}
+                            disabled={!pagination.hasPrev}
+                            className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <ChevronLeftIcon className="h-5 w-5" />
+                          </button>
+                          
+                          {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                              key={page}
+                              onClick={() => handlePageChange(page)}
+                              className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                                page === pagination.currentPage
+                                  ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                          
+                          <button
+                            onClick={() => handlePageChange(pagination.currentPage + 1)}
+                            disabled={!pagination.hasNext}
+                            className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <ChevronRightIcon className="h-5 w-5" />
+                          </button>
+                        </nav>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
-        {/* User Modal */}
-        {showUserModal && (
-          <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-40">
-            <motion.div
-              ref={userModalRef}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="bg-white p-6 rounded-lg shadow-2xl w-11/12 max-w-lg h-auto max-h-[80vh] flex flex-col z-50"
-              role="dialog"
-              aria-labelledby="user-modal-title"
-              aria-modal="true"
-            >
-              <h2 id="user-modal-title" className="text-2xl font-bold text-gray-900 mb-6">
-                {editingUser ? 'Edit User' : 'Add User'}
-              </h2>
-              <div className="flex-1 overflow-y-auto pr-2 pl-2 space-y-4" aria-describedby="user-form-fields">
-                <div id="user-form-fields" className="sr-only">User form fields</div>
-                <div>
-                  <label htmlFor="user-name" className="text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    id="user-name"
-                    type="text"
-                    placeholder="Enter name"
-                    value={newUser.name}
-                    onChange={(e) => {
-                      setNewUser({ ...newUser, name: e.target.value });
-                      setUserErrors((prev) => ({ ...prev, name: undefined }));
-                    }}
-                    ref={userFirstInputRef}
-                    className={`mt-1 w-full border ${
-                      userErrors.name ? 'border-red-300' : 'border-gray-200'
-                    } rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200`}
-                    aria-label="User name"
-                    aria-describedby={userErrors.name ? 'user-name-error' : undefined}
-                  />
-                  {userErrors.name && (
-                    <p id="user-name-error" className="text-xs text-red-600 mt-1" aria-live="polite">
-                      {userErrors.name}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="user-email" className="text-sm font-medium text-gray-700">Email</label>
-                  <input
-                    id="user-email"
-                    type="email"
-                    placeholder="Enter email"
-                    value={newUser.email}
-                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                    className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
-                    aria-label="User email"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="user-role" className="text-sm font-medium text-gray-700">Role</label>
-                  <select
-                    id="user-role"
-                    value={newUser.role}
-                    onChange={(e) => setNewUser({ ...newUser, role: e.target.value as 'Admin' | 'User' })}
-                    className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
-                    aria-label="User role"
-                  >
-                    <option value="User">User</option>
-                    <option value="Admin">Admin</option>
-                  </select>
-                </div>
-              </div>
-              <div className="mt-6 flex justify-end gap-3 sticky bottom-0 bg-white pt-4 z-10">
-                <button
-                  onClick={() => { setShowUserModal(false); setEditingUser(null); setNewUser({ name: '', email: '', role: 'User' }); setUserErrors({}); }}
-                  onKeyDown={(e) => handleKeyDown(e, () => { setShowUserModal(false); setEditingUser(null); setNewUser({ name: '', email: '', role: 'User' }); setUserErrors({}); })}
-                  className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
-                  aria-label="Cancel user"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddOrEditUser}
-                  onKeyDown={(e) => handleKeyDown(e, handleAddOrEditUser)}
-                  className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200"
-                  disabled={!newUser.name.trim()}
-                  aria-label={editingUser ? 'Update user' : 'Add user'}
-                >
-                  {editingUser ? 'Update' : 'Add'}
-                </button>
-              </div>
-            </motion.div>
+        {/* Statistics */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-2xl font-bold text-blue-600">{pagination.totalUsers}</div>
+            <div className="text-sm text-gray-600">Total Users</div>
           </div>
-        )}
-
-        {/* Project Modal */}
-        {showProjectModal && (
-          <div className="fixed inset-0 bg-black/20 flex items-center justify-center z-40">
-            <motion.div
-              ref={projectModalRef}
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.3, ease: 'easeOut' }}
-              className="bg-white p-6 rounded-lg shadow-2xl w-11/12 max-w-lg h-auto max-h-[80vh] flex flex-col z-50"
-              role="dialog"
-              aria-labelledby="project-modal-title"
-              aria-modal="true"
-            >
-              <h2 id="project-modal-title" className="text-2xl font-bold text-gray-900 mb-6">
-                {editingProject ? 'Edit Project' : 'Add Project'}
-              </h2>
-              <div className="flex-1 overflow-y-auto pr-2 pl-2 space-y-4" aria-describedby="project-form-fields">
-                <div id="project-form-fields" className="sr-only">Project form fields</div>
-                <div>
-                  <label htmlFor="project-name" className="text-sm font-medium text-gray-700">Name</label>
-                  <input
-                    id="project-name"
-                    type="text"
-                    placeholder="Enter name"
-                    value={newProject.name}
-                    onChange={(e) => {
-                      setNewProject({ ...newProject, name: e.target.value });
-                      setProjectErrors((prev) => ({ ...prev, name: undefined }));
-                    }}
-                    ref={projectFirstInputRef}
-                    className={`mt-1 w-full border ${
-                      projectErrors.name ? 'border-red-300' : 'border-gray-200'
-                    } rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline focus:ring-1 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200`}
-                    aria-label="Project name"
-                    aria-describedby={projectErrors.name ? 'project-name-error' : undefined}
-                  />
-                  {projectErrors.name && (
-                    <p id="project-name-error" className="text-xs text-red-600 mt-1" aria-live="polite">
-                      {projectErrors.name}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="project-description" className="text-sm font-medium text-gray-700">Description</label>
-                  <textarea
-                    id="project-description"
-                    placeholder="Enter description"
-                    value={newProject.description}
-                    onChange={(e) => {
-                      setNewProject({ ...newProject, description: e.target.value });
-                      setProjectErrors((prev) => ({ ...prev, description: undefined }));
-                    }}
-                    rows={4}
-                    className={`mt-1 w-full border ${
-                      projectErrors.description ? 'border-red-300' : 'border-gray-200'
-                    } rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200`}
-                    aria-label="Project description"
-                    aria-describedby={projectErrors.description ? 'project-description-error' : undefined}
-                  />
-                  {projectErrors.description && (
-                    <p id="project-description-error" className="text-xs text-red-600 mt-1" aria-live="polite">
-                      {projectErrors.description}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="project-status" className="text-sm font-medium text-gray-700">Status</label>
-                  <select
-                    id="project-status"
-                    value={newProject.status}
-                    onChange={(e) => setNewProject({ ...newProject, status: e.target.value as 'Active' | 'Inactive' })}
-                    className="mt-1 w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
-                    aria-label="Project status"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-              <div className="mt-6 flex justify-end gap-3 sticky bottom-0 bg-white pt-4 z-10">
-                <button
-                  onClick={() => { setShowProjectModal(false); setEditingProject(null); setNewProject({ name: '', description: '', status: 'Active' }); setProjectErrors({}); }}
-                  onKeyDown={(e) => handleKeyDown(e, () => { setShowProjectModal(false); setEditingProject(null); setNewProject({ name: '', description: '', status: 'Active' }); setProjectErrors({}); })}
-                  className="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-300 transition-all duration-200"
-                  aria-label="Cancel project"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddOrEditProject}
-                  onKeyDown={(e) => handleKeyDown(e, handleAddOrEditProject)}
-                  className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-300 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200"
-                  disabled={!newProject.name.trim() || !newProject.description.trim()}
-                  aria-label={editingProject ? 'Update project' : 'Add project'}
-                >
-                  {editingProject ? 'Update' : 'Add'}
-                </button>
-              </div>
-            </motion.div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-2xl font-bold text-green-600">
+              {users.filter(u => u.isActive).length}
+            </div>
+            <div className="text-sm text-gray-600">Active Users</div>
           </div>
-        )}
-
-        <Footer />
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-2xl font-bold text-purple-600">
+              {users.filter(u => u.roles.some(r => r.name === 'Admin')).length}
+            </div>
+            <div className="text-sm text-gray-600">Administrators</div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            <div className="text-2xl font-bold text-orange-600">
+              {users.filter(u => u.roles.some(r => r.name === 'Developer')).length}
+            </div>
+            <div className="text-sm text-gray-600">Developers</div>
+          </div>
+        </div>
       </div>
     </div>
   );

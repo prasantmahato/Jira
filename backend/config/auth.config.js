@@ -4,6 +4,6 @@ export const authConfig = {
     jwtExpiration: process.env.JWT_EXPIRE_TIME || '15m',
     jwtRefreshExpiration: process.env.JWT_REFRESH_EXPIRE_TIME || '7d',
     bcryptSaltRounds: 12,
-    maxLoginAttempts: 5,
+    maxLoginAttempts: 500,
     lockoutTime: 15 * 60 * 1000, // 15 minutes
   };
